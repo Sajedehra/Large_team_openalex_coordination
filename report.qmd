@@ -1,0 +1,9 @@
+---
+title: "report"
+format: html
+editor: visual
+---
+
+## number of enteries
+
+`{r} n_initial` was the total entries.

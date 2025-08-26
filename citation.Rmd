@@ -1,0 +1,576 @@
+---
+title: "results"
+output: html_document
+date: "2025-02-05"
+---
+
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(psych)
+library(FSA)
+library(tidyr)
+
+dat<- readRDS("D:/Sajedeh/Psydat_cleaned.rds")
+duun_fif<- readRDS("D:/Sajedeh/duun_fif.rds")
+duun_ten<- readRDS("D:/Sajedeh/duun_ten.rds")
+duun_five<- readRDS("D:/Sajedeh/duun_five.rds")
+saveRDS(dunn_summary_five, "D:/Sajedeh/duun_fivesum2.rds")
+```
+
+# big teams as a phenomenon
+
+```{r}
+ggplot(aes(x = pubdate, y = n_author), data = dat) +
+  geom_point()+
+  geom_smooth(color = "blue")+
+  theme_minimal()
+
+```
+
+
+```{r}
+ggplot(aes(x = pubdate, y = citation), data = dat) +
+  geom_point()+
+  theme_minimal()
+
+```
+
+
+```{r}
+
+ggplot(aes(x = n_author, y = citation), data = dat) +
+  geom_point()+
+  theme_minimal()
+
+
+```
+
+
+
+
+```{r}
+
+dat|> filter(n_author> 15)|>
+  ggplot(aes(citation, factor(author_group_ten)))+
+  geom_violin()+
+  theme_minimal()+
+  coord_cartesian(xlim = c(0, 1000))
+
+```
+
+```{r}
+
+dat|> filter(n_author> 15)|>
+  ggplot(aes(citation, factor(author_group_five)))+
+  geom_violin()+
+  theme_minimal()+
+  coord_cartesian(xlim = c(0, 1000))
+
+```
+
+```{r}
+
+dat|> filter(n_author> 20)|>
+  ggplot(aes(citation, factor(author_group_fifteen)))+
+  geom_violin()+
+  theme_minimal()+
+  coord_cartesian(xlim = c(0, 1000))
+
+```
+
+```{r}
+corr<- cor(dat$n_author, dat$citation, method = "spearman", use = "complete.obs")
+print(corr)
+
+corr2<- cor(dat$n_author, dat$citation_2y, method = "spearman", use = "complete.obs")
+print(corr2)
+```
+
+
+# Citation
+
+```{r}
+
+dat |>
+  group_by(author_group_five) |>
+  summarise(
+    median_citations = median(citation, na.rm = TRUE),
+    count = n()
+  ) |>
+  ggplot(aes(x = author_group_five, y = median_citations)) +
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = count, y = median_citations + 2), size = 3, angle = 90) +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) 
+
+```
+
+```{r}
+dat |>
+  group_by(author_group_ten) |>
+  summarise(
+    median_citations = median(citation, na.rm = TRUE),
+    count = n()
+  ) |>
+  ggplot(aes(x = author_group_ten, y = median_citations)) +
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = count, y = median_citations + 2), size = 3, angle = 90) +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+```
+```{r}
+dat |>
+  group_by(author_group_fifteen) |>
+  summarise(
+    median_citations = median(citation, na.rm = TRUE),
+    count = n()
+  ) |>
+  ggplot(aes(x = author_group_fifteen, y = median_citations)) +
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = count, y = median_citations + 2), size = 3, angle = 90) +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+```
+
+```{r}
+counts_five <- dat |> 
+  group_by(author_group_five) |> 
+  summarise(count = n(), .groups = "drop")
+
+dat |>
+  ggplot(aes(x = author_group_five, y = citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(fun = mean, geom = "point", color = "red", size = 2) +
+  geom_text(
+    data = counts_five,
+    aes(x = author_group_five, y = 402, label = count),  # put labels above boxes
+    inherit.aes = FALSE,
+    size = 3,
+    angle = 90
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  coord_cartesian(ylim = c(0, 410))
+```
+
+```{r}
+counts_ten <- dat |> 
+  group_by(author_group_ten) |> 
+  summarise(count = n(), .groups = "drop")
+
+dat |>
+  ggplot(aes(x = author_group_ten, y = citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(fun = mean, geom = "point", color = "red", size = 2) +
+  geom_text(
+    data = counts_ten,
+    aes(x = author_group_ten, y = 402, label = count),  # put labels above boxes
+    inherit.aes = FALSE,
+    size = 3,
+    angle = 90
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  coord_cartesian(ylim = c(0, 410))
+
+```
+
+
+```{r}
+counts_fif <- dat |> 
+  group_by(author_group_fifteen) |> 
+  summarise(count = n(), .groups = "drop")
+
+dat |>
+  ggplot(aes(x = author_group_fifteen, y = citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(fun = mean, geom = "point", color = "red", size = 2) +
+  geom_text(
+    data = counts_fif,
+    aes(x = author_group_fifteen, y = 402, label = count),  # put labels above boxes
+    inherit.aes = FALSE,
+    size = 3,
+    angle = 90
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  coord_cartesian(ylim = c(0, 410))
+
+```
+
+```{r}
+dat |>
+  group_by(author_group_five) |>
+  ggplot(aes(x = author_group_five, y = citation_2y)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 100))
+
+```
+
+```{r}
+dat |>
+  group_by(author_group_ten) |>
+  ggplot(aes(x = author_group_ten, y = citation_2y)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 100))
+
+```
+
+```{r}
+dat |>
+  group_by(author_group_fifteen) |>
+  ggplot(aes(x = author_group_fifteen, y = citation_2y)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 100))
+
+```
+
+```{r}
+des<- dat|>
+  group_by(author_group_five)|>
+  summarise(n=n(),
+            across(c(citation), list( mean = mean, sd = sd, median = median, IQR= IQR), .names = "{.col}_{.fn}"))
+
+
+print(des)
+
+```
+
+```{r}
+des_ten<- dat|>
+  group_by(author_group_ten)|>
+  summarise(n=n(),
+            across(c(citation), list( mean = mean, sd = sd, median = median, IQR= IQR), .names = "{.col}_{.fn}"))
+
+
+print(des_ten)
+
+```
+
+```{r}
+des_fif<- dat|>
+  group_by(author_group_fifteen)|>
+  summarise(n=n(),
+            across(c(citation), list( mean = mean, sd = sd, median = median, IQR= IQR), .names = "{.col}_{.fn}"))
+
+
+print(des_fif)
+
+```
+
+
+
+```{r}
+kruskat_five<- kruskal.test(citation ~ author_group_five, data = dat)
+kruskat_five
+
+```
+
+
+```{r}
+duun_five<- dunnTest(citation ~ author_group_five, data = dat, method = "bh")
+duun_five$res[order(-duun_five$res$Z),]
+
+
+```
+
+
+```{r}
+
+
+# Extract group names
+dunn_summary_five <- duun_five$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+# Count wins
+group_scores_five <- dunn_summary_five |>
+  count(winner, name = "wins")
+
+# Optionally count losses too
+group_losses_five <- dunn_summary_five |>
+  count(loser, name = "losses")
+
+# Combine
+ranking_five <- full_join(group_scores_five, group_losses_five, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         net_score = wins - losses) |>
+  arrange(desc(net_score))
+
+ranking_five
+```
+
+
+```{r}
+kruskat_ten<- kruskal.test(citation ~ author_group_ten, data = dat)
+kruskat_ten
+```
+
+
+```{r}
+duun_ten<- dunnTest(citation ~ author_group_ten, data = dat, method = "bh")
+duun_ten$res[order(-duun_ten$res$Z),]
+```
+
+
+```{r}
+dunn_summary_ten <- duun_ten$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+
+group_scores_ten <- dunn_summary_ten |>
+  count(winner, name = "wins")
+
+
+group_losses_ten <- dunn_summary_ten |>
+  count(loser, name = "losses")
+
+
+ranking_ten <- full_join(group_scores_ten, group_losses_ten, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         net_score = wins - losses) |>
+  arrange(desc(net_score))
+
+ranking_ten
+
+```
+
+
+```{r}
+kruskat_fif<- kruskal.test(citation ~ author_group_fifteen, data = dat)
+kruskat_fif
+```
+
+```{r}
+duun_fif<- dunnTest(citation ~ author_group_fifteen, data = dat, method = "bh")
+
+duun_fif$res[order(-duun_fif$res$Z),]
+```
+
+
+```{r}
+dunn_summary_fif <- duun_fif$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+
+group_scores_fif <- dunn_summary_fif |>
+  count(winner, name = "wins")
+
+
+group_losses_fif <- dunn_summary_fif |>
+  count(loser, name = "losses")
+
+
+ranking_fif <- full_join(group_scores_fif, group_losses_fif, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         net_score = wins - losses) |>
+  arrange(desc(net_score))
+
+ranking_fif
+
+```
+
+
+
+```{r}
+percent0cite_five <- dat |>
+  group_by(author_group_five) |>
+  summarise(cite0 = sum(citation == 0) / n())|>
+  arrange(desc(cite0))
+
+percent0cite_five
+```
+
+
+```{r}
+percent0cite_ten <- dat |>
+  group_by(author_group_ten) |>
+  summarise(cite0 = sum(citation == 0) / n())|>
+  arrange(desc(cite0))
+
+percent0cite_ten
+```
+
+
+```{r}
+percent0cite_fif <- dat |>
+  group_by(author_group_fifteen) |>
+  summarise(cite0 = sum(citation == 0) / n())|>
+  arrange(desc(cite0))
+
+percent0cite_fif
+```
+
+
+
+```{r}
+year2011 <- dat |> 
+  filter(pubdate >= "2011-01-01" & pubdate < "2012-01-01") |> 
+  group_by(author_group_ten) |> 
+  summarise(
+    median_citations = median(citation, na.rm = TRUE),
+    count = n()
+  ) |> 
+  pivot_longer(cols = c(median_citations, count), names_to = "metric", values_to = "value")
+
+ggplot(year2011, aes(x = author_group_ten, y = value, color = metric, group = metric)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal()
+
+
+year2011
+```
+
+
+
+```{r}
+year2020 <- dat |> 
+  filter(pubdate >= "2020-01-01" & pubdate < "2021-01-01") |> 
+  group_by(author_group_ten) |> 
+  summarise(
+    median_citations = median(citation, na.rm = TRUE),
+    count = n()
+  ) |> 
+  pivot_longer(cols = c(median_citations, count), names_to = "metric", values_to = "value")
+
+ggplot(year2011, aes(x = author_group_ten, y = value, color = metric, group = metric)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal()
+
+year2020
+
+```
+
+
+
+```{r}
+year1990 <- dat |> 
+  filter(pubdate >= "1990-01-01" & pubdate < "1991-01-01") |> 
+  group_by(author_group_ten) |> 
+  summarise(
+    median_citations = median(citation, na.rm = TRUE),
+    count = n()
+  ) |> 
+  pivot_longer(cols = c(median_citations, count), names_to = "metric", values_to = "value")
+
+ggplot(year2011, aes(x = author_group_ten, y = value, color = metric, group = metric)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal()
+
+year1990
+
+```
+
+
+```{r}
+duun_fif2<- dunnTest(citation_2y ~ author_group_fifteen, data = dat, method = "bh")
+
+duun_fif2$res[order(-duun_fif2$res$Z),]
+```
+
+
+```{r}
+dunn_summary_fif2 <- duun_fif2$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+
+group_scores_fif2 <- dunn_summary_fif2 |>
+  count(winner, name = "wins")
+
+
+group_losses_fif2 <- dunn_summary_fif2 |>
+  count(loser, name = "losses")
+
+
+ranking_fif2 <- full_join(group_scores_fif2, group_losses_fif2, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         net_score = wins - losses) |>
+  arrange(desc(net_score))
+
+ranking_fif2
+
+```
+
+
+
+```{r}
+duun_ten2<- dunnTest(citation_2y ~ author_group_ten, data = dat, method = "bh")
+duun_ten2$res[order(-duun_ten2$res$Z),]
+```
+
+
+```{r}
+dunn_summary_ten2 <- duun_ten2$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+
+group_scores_ten2 <- dunn_summary_ten2 |>
+  count(winner, name = "wins")
+
+
+group_losses_ten2 <- dunn_summary_ten2 |>
+  count(loser, name = "losses")
+
+
+ranking_ten2 <- full_join(group_scores_ten2, group_losses_ten2, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         net_score = wins - losses) |>
+  arrange(desc(net_score))
+
+ranking_ten2
+
+```
+
+
+
+

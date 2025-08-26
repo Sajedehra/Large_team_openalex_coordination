@@ -11,6 +11,7 @@ library(openalexR)
 library(tictoc)
 library(psych)
 library(ggplot2)
+library(stringr)
 # initial merging ------------------------------------------------------------
 
 
@@ -34,62 +35,30 @@ library(ggplot2)
 # Start of cleaning -------------------------------------------------------
 
 
-dat<- readRDS("D:/Sajedeh/dat_enjournal.rds")
+dat<- readRDS("D:/Sajedeh/dat_raw.rds")
 
 dat<- dat|>distinct(oa_id, .keep_all = TRUE)
-#dat <- dat[!duplicated(dat)]
+
 n_initial<- nrow(dat)
 
 dat<- dat|>distinct(doi, pubdate, journal, volume, issue, page, .keep_all = TRUE)
 n_notduplicate<- nrow(dat)
 
-#dat<- dat|> sum(!is.na(issn))
-#length(unique(dat$issn))
-#journal_check<- dat |> distinct(issn, journal, IF.x)
-#write.csv(journal_check, "D:/Sajedeh/journal_check.csv")
-## removing journals that are clearly unrelated to psychology
-#unique_psy_jour<- read_csv("C:/Users/labcontrol/Downloads/psychology_core_and_general_journals.csv")
-#unique_psy_jour <- unique_psy_jour |> select(-IF.x)
-#PNAS<- c("0027-8424", "PNAS (paper)")
-#unique_psy_jour <-rbind(PNAS, unique_psy_jour)
-#dat_d<- dat_1 |>filter(issn %in% unique_psy_jour$issn)
-#sum(dat_d$journal=="Science", na.rm = TRUE)
+#setting desired publication range
+range(dat$pubdate, na.rm = TRUE)
 
+dat<- dat|> filter(pubdate>="1975-01-01" & pubdate<"2024-09-15")
+n_correctyear<- nrow(dat)
 
 ## removing non-psychology works / not journals
+dat<- dat|> filter(type == "journal-article")
+n_article<- nrow(dat)
 
-dat<- dat|> filter(language == "en")|> filter(type == "journal-article")
-n_enjournal<- nrow(dat)
+dat<- dat|> filter(language == "en")
+dat <- dat[which(!grepl("[^\x01-\x7F]+", dat$title)),]
+n_english<- nrow(dat)
 
-non_psych_keywords <- c(
-  "cancer", "oncology", "immunology", "biotechnology", "cell", "genetics",
-  "molecular", "materials", "energy", "physics", "chemistry", "biomedical",
-  "cardiology", "nephrology", "gastroenterology", "pathology", "plant",
-  "engineering", "metabolism", "diabetes", "neurology", "urology", "hematology",
-  "endocrinology", "photonics", "optics", "thoracic", "seismology", "climate",
-  "sustainability", "fluid", "robotics", "composites", "environment",
-  "bioproducts", "computing", "electronics", "pattern analysis", "earth",
-   "microbiology", "virology", "biochemistry", 
-   "respiratory", "solar", "bioethics", "bioresources", "ceramics",
-  "ophthalmology", "rheumatic", "infection", "infection", "neuro-oncology",
-  "nucleic acids", "retinal", "thoracic", "failure", "liver", "nanotech",
-  "chem", "drug", "development", "surveillance", "medicine",
-  "advanced materials", "host", "metabolism", "tissue", "vascular", "transduction", 
-   "surgery", "Instrumentation", "Anaesthesia",
-  "diabet", "Autophagy", "Physical", "particle", "BMC", "APS", "Biological Rhythms", 
-  "Epidemiology", "lancet", "JAMA", "Ecology", "arXiv", "MIT", "PMC", "Repository",
-  "chest", "Archives", "Reproduction", "Change Biology", "BMJ", "pharmacological",
-  "film studies", "#", "table of Content", "Symposium", "acknowledgement to",
-  "acknowledgement of"
-)
-
-
-
-pattern <- paste(non_psych_keywords, collapse = "|")
-
-dat <- dat |>
-  filter(!str_detect(title, regex(pattern, ignore_case = TRUE)))
-
+# removing unrelated work
 
 dat <- dat |>
   filter(!str_detect(
@@ -97,30 +66,79 @@ dat <- dat |>
     regex("^Acknowledg(e)?ment(s)?$", ignore_case = TRUE)
   ))
 
-n_article_psychology<- nrow(dat)
+ack_pat   <- regex("\\bAcknowledg(e)?ment(s)?\\b", ignore_case = TRUE)
+editor_pat <- regex("\\bReviewer(s)?\\b", ignore_case = TRUE)
 
-# removing other types of entries but journal articles
-dat_d <- dat_d[(dat_d$type == "journal-article"),]
-n_journal<- nrow(dat)
+dat <- dat |>
+  filter(!(str_detect(coalesce(title, ""), ack_pat) &
+             str_detect(coalesce(title, ""), editor_pat)))
+
+dat<- dat|> filter(!str_detect(str_trim(title), regex("^Achievement(s)?$", ignore_case = TRUE))) #5264 cases until here
+
+
+irrelevant_title_keywords<- c("Essay", "symposium", "table of content", "proceedings", "annual meeting", "Blockchain", "Bug", "Temporal Network", "Handbook", "Conference",
+                              "control system", "Poetry", "Dance", "update on", "Machine Learning", "NUCLEAR", "PHYSICS", "portfolio", "Solar Power",
+                              "Epilogue", "oppening", "Book Review", "COMMENTARY", "Reporting Guideline", "editorial", "nursing", "Publication Information",
+                              "Sibling Designs", "airfoil", "Meeting and Workshops") #9621 cases for the first 4
 
 
 
-#removing unwanted years
-range(dat$pubdate)
+pattern <- paste(irrelevant_title_keywords, collapse = "|")
 
-dat_d<- dat_d|> filter(pubdate>="1900-01-01" & pubdate<"2025-01-01")
-range(dat$pubdate)
+dat <- dat |>
+  filter(!str_detect(title, regex(pattern, ignore_case = TRUE))) # 85252 cases until here (NAs are also removed)
+
+#check<- sample_n(dat, 200, replace = FALSE)
+#check2<- sample_n(dat_d, 200, replace = FALSE)
+#check3<- sample_n(dat, 200, replace = FALSE)
+#check4<- sample_n(dat, 200, replace = FALSE)
+
+irrelevant_journal_keywords<- c("History", "software", "Eos", "Acoustics", "Surgery", "Tourism", "chemistry", "Robotics", "Physical",
+                                "Entrepreneurial Business", "ACM SIGCSE Bulletin", "computer science", "Environmental", "Pharmacology",
+                                "Metaphilosophy", "Signal Processing", "Electronic", "Nutrition", "Canadian Studies", "Style",
+                                "Fashion", "Entomology", "Ethnology", "Engineering", "Gas", "Critical Care", "Anthropolog", "art",
+                                "Energy Conversion", "Safety Progress", "Mathematic", "Machine Learning", "Revista eureka",
+                                "IT services", "Deleted Journal", "Philosophy", "auto world", "National Academy of Sciences", "Choice Reviews Online",
+                                "Hotline", "Economic", "Nursing", "Mobilities", "Conference", "Maska", "Utility Computing", "Green Computing",
+                                "theatre", "IEEE", "Pediatrics", "Information Technology", "Tissue", "Ergonomics", "Industry Applications",
+                                "Agrosearch", "Discourse", "Cybernetics", "Accounting" ,"Infection", "The Monist", "A I I E Transactions",
+                                "Molecular", "Sports", "nonmunji", "Linguistica e filologia", "Music", "DergiPark", "Acta Medica", "Trade",
+                                "Synthesiology", "Aerospace", "musik", "Marketing", "Human Rights", "Dialysis", "Kairaranga", "Disaster", "Fuzzy",
+                                "Legal", "NUCLEAR", "Operations Research", "BMC", "English", "Literacy", "Information Science", "Trafficking",
+                                "Planner", "Experimental Biology", "Airports", "NASSP", "Medical Ethics", "Complexity", "Medical Herald", "Social Work",
+                                "Optical", "Movement Science", "soft Computing", "law Journal", "Fire", "Shock", "Vinnytsia", "Linguistica", "biochem",
+                                "Applied Probability", "Physics", "plant Science", "Parks", "Nephrology", "techtrends", "Dental", "Fuel", "criminology",
+                                "Training", "Verbal", "Internal Medicine", "St Tikhons University Review", "Petroleum", "CORAK", "Teachers College", 
+                                "Agricultur", "Lawyer", "Orthopt", "information systems", "Finance Review", "Air transport", "Orthopaedic", "Medicine & Biology",
+                                "Obstetrics", "Intelligent Systems", "Transportation Research", "Urology", "dialectica") 
+
+
+
+pattern2 <- paste(irrelevant_journal_keywords, collapse = "|")
+
+dat <- dat |>
+  filter(!str_detect(journal, regex(pattern2, ignore_case = TRUE))) # 652811 cases removed
+
+
+irrelevant_issn<- c("1073-1911", "0022-0418", "1356-5028", "1440-7833", "0894-069X", "0013-7545", "1940-9052", "1063-5157", "0042-8469", "1327-9556", "1660-9336",
+                    "0127-9696", "1470-5427")
+pattern3 <- paste(irrelevant_issn, collapse = "|")
+dat <- dat |>
+  filter(is.na(issn) | !str_detect(issn, regex(pattern3, ignore_case = TRUE))) # 3189 cases removed
+
+
+
+
 
 #calculating number of authors
-dat_d$n_author<- str_count(dat_d$oa_id_author, ",")+1
+dat$n_author<- str_count(dat$oa_id_author, ",")+1
 
 # calculating the time difference from publication
 download_date <- as.Date("2024-09-14")
 
-dat_d$timediff <- as.integer(download_date - as.Date(dat_d$pubdate))
-dat_d$timediff[dat_d$timediff == 0] <- 1
+dat$timediff <- as.integer(download_date - as.Date(dat$pubdate))
+dat$timediff[dat$timediff == 0] <- 1
 
-dat$issuedate <- format(as.Date(dat$pubdate), "%Y-%m") #sometimes pubdate appears as such in crossref
 
 
 
@@ -129,70 +147,28 @@ dat$issuedate <- format(as.Date(dat$pubdate), "%Y-%m") #sometimes pubdate appear
 
 #checking the missing info
 
-n_miss_author<- sum(is.na(dat2$n_author))
+n_miss_author<- sum(is.na(dat$n_author))
 n_miss_issn <- sum(is.na(dat$issn))
 
 n_miss_both<- nrow(dat|>filter(if_all(c(n_author, issn), is.na)))
 
 n_missing_ref <- sum(dat$ref == "")
 
-#plotting the missing data
 
+# checking the most extremes ----------------------------------------------
 
-par(mfrow = c(2,2))
+extr_authors<-dat  |> 
+  filter(!is.na(n_author)) |> 
+  slice_max(n_author, n = 10)
 
-#dat|> mutate(pubyear = format(pubdate, "%Y"))|> group_by(pubyear)|>summarise(miss_author = sum(is.na(dat$n_author)))|>
-#  ggplot(aes(x = pubyear, y = miss_author))+
-#  geom_point()
-
-missing_years<- dat|>mutate(pubyear = format(pubdate, "%Y"))|> group_by(pubyear)|> summarise(sum(is.na(n_author)))
-
-ggplot(aes(x = as.integer(pubyear), y = `sum(is.na(n_author))`), data= missing_years)+
-  geom_line(color = "blue")+
-  geom_point(color = "red")
-
-
-
-missing_ref <- dat|>mutate(pubyear = format(pubdate, "%Y"))|> group_by(pubyear)|> summarise(miss_ref = sum(ref == ""))
-
-ggplot(aes(x = as.integer(pubyear), y = miss_ref), data= missing_ref)+
-  geom_line(color = "blue")+
-  geom_point(color = "red")
-missing_issn <- dat|>mutate(pubyear = format(pubdate, "%Y"))|> group_by(pubyear)|> summarise(miss_issn = sum(is.na(issn)))
-
-
-#trying to replace missing authors
-
-tic()
-for (i in 128:138) {
-  if(is.na(dat$n_author[i])){
-      info<- oa_fetch(identifier = paste(sub("https://openalex.org/", "", dat$oa_id[i])))
-      title<- info$title
-      cr_info<- cr_works(query=title)
-      for (j in 1:length(cr_info[["data"]][["author"]])) {
-        if(cr_info[["data"]][["issued"]][[j]] == dat$issuedate[i] || cr_info[["data"]][["issued"]][[j]] == dat$pubdate[i]){
-          dat$n_author[i] = length(cr_info[["data"]][["author"]][[j]][["family"]])
-        }else
-          dat$n_author[i] <- "unknown"
-      }
-    }
-  }
-
-toc()
-
-# trying to replace missing issn
-
-
-
+extr_citations<- dat |> 
+  filter(!is.na(citation)) |> 
+  slice_max(citation, n = 10)
 
 # defining groups ---------------------------------------------------------
 
 # grouping based on number of authors (3 different versions)
-max<- dat_d  |> 
-  filter(!is.na(n_author)) |> 
-  slice_max(n_author, n = 30)
 
-mean(max$n_author[1:10])
 
 max<- dat_d |> 
   filter(!is.na(citation)) |> 

@@ -1,0 +1,171 @@
+---
+title: "corrected citation"
+output: html_document
+date: "2025-07-09"
+---
+
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(psych)
+library(FSA)
+
+dat<- readRDS("D:/Sajedeh/dat_cleaned.rds")
+```
+
+
+## corrected citation
+
+```{r}
+dat_d$corr_citation <- dat_d$citation/dat_d$timediff
+
+```
+
+
+
+
+```{r}
+corr<- cor(dat$n_author, dat$corr_citation , method = "spearman", use = "complete.obs")
+print(corr)
+
+
+```
+
+
+
+
+```{r}
+
+
+ dat |>
+  group_by(author_group_five) |>
+  summarise(
+    median_citations = median(corr_citation , na.rm = TRUE),
+    count = n()
+  ) |>
+  ggplot(aes(x = author_group_five, y = median_citations)) +
+  geom_col(fill = "steelblue") +
+  ylim(0, 0.05)+
+  geom_text(aes(label = count, y = median_citations + 2), size = 3) +
+  theme_minimal() 
+
+```
+
+```{r}
+dat |>
+  group_by(author_group_ten) |>
+  summarise(
+    median_citations = median(corr_citation , na.rm = TRUE),
+    count = n()
+  ) |>
+  ggplot(aes(x = author_group_ten, y = median_citations)) +
+  geom_col(fill = "steelblue") +
+  ylim(0, 0.05)+
+  geom_text(aes(label = count, y = median_citations + 2), size = 3) +
+  theme_minimal() 
+
+```
+
+
+
+```{r}
+dat |>
+  group_by(author_group_fifteen) |>
+  summarise(
+    median_citations = median(corr_citation , na.rm = TRUE),
+    count = n()
+  ) |>
+  ggplot(aes(x = author_group_fifteen, y = median_citations)) +
+  geom_col(fill = "steelblue") +
+  ylim(0, 0.05)+
+  geom_text(aes(label = median_citations, y = median_citations + 2), size = 3) +
+  theme_minimal() 
+
+```
+
+```{r}
+dat |>
+  group_by(author_group_five) |>
+  ggplot(aes(x = author_group_five, y = corr_citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 0.1))
+
+```
+
+
+
+
+
+```{r}
+dat |>
+  group_by(author_group_ten) |>
+  ggplot(aes(x = author_group_ten, y = corr_citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 0.1))
+
+```
+
+
+
+```{r}
+dat |>
+  group_by(author_group_fifteen) |>
+  ggplot(aes(x = author_group_fifteen, y = corr_citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 0.1))
+
+```
+
+
+
+```{r}
+corrdes<- dat|>
+  group_by(author_group_five)|>
+  summarise(n=n(),
+            across(c(corr_citation), list( mean = ~mean(.x, na.rm = TRUE), sd = ~sd(.x, na.rm = TRUE), median = ~median(.x, na.rm = TRUE), IQR=  ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+print(corrdes)
+
+```
+
+```{r}
+corrdes_ten<- dat|>
+  group_by(author_group_ten)|>
+  summarise(n=n(),
+            across(c(corr_citation), list( mean = mean, sd = sd, median = median, IQR=  ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+print(corrdes_ten)
+
+```
+
+```{r}
+corrdes_fif<- dat|>
+  group_by(author_group_fifteen)|>
+  summarise(n=n(),
+            across(c(corr_citation), list( mean = mean, sd = sd, median = median, IQR=  ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+print(corrdes_fif)
+
+```
+
+
+
+
