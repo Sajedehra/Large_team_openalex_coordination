@@ -17,7 +17,7 @@ dat<- readRDS("D:/Sajedeh/dat_cleaned.rds")
 ## corrected citation
 
 ```{r}
-dat_d$corr_citation <- dat_d$citation/dat_d$timediff
+dat$corr_citation <- dat$citation/dat$timediff
 
 ```
 
@@ -93,7 +93,7 @@ dat |>
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
-  coord_cartesian(ylim = c(0, 0.1))
+  coord_cartesian(ylim = c(0, 0.2))
 
 ```
 
@@ -111,7 +111,7 @@ dat |>
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
-  coord_cartesian(ylim = c(0, 0.1))
+  coord_cartesian(ylim = c(0, 0.2))
 
 ```
 
@@ -127,7 +127,7 @@ dat |>
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
-  coord_cartesian(ylim = c(0, 0.1))
+  coord_cartesian(ylim = c(0, 0.2))
 
 ```
 
@@ -167,5 +167,16 @@ print(corrdes_fif)
 ```
 
 
+```{r}
+corkruskat_fif<- kruskal.test(corr_citation ~ author_group_fifteen, data = dat)
+corkruskat_fif
+```
+
+
+```{r}
+corduun_fif<- dunnTest(corr_citation ~ author_group_fifteen, data = dat, method = "bh")
+
+corduun_fif$res[order(-corduun_fif$res$Z),]
+```
 
 

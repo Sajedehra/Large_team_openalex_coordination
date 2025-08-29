@@ -1,0 +1,76 @@
+---
+title: "growth rate"
+output: html_document
+date: "2025-08-26"
+---
+
+
+#growth rate over ten years (2014-2024)
+```{r}
+tem<- dat |> filter(pubdate >= "2014-01-01", pubdate< "2024-01-01")|>
+  mutate(pubyear = format(as.Date(pubdate), "%Y"))|>
+  group_by(pubyear, author_group_five)|>
+  summarise(n = n())
+  
+tem
+
+years <- sort(unique(as.integer(tem$pubyear)))
+tem_yoy <- tem %>%
+  mutate(pubyear = as.integer(pubyear)) %>%
+  group_by(author_group_five) %>%
+  complete(pubyear = years, fill = list(n = 0)) %>%
+  arrange(author_group_five, pubyear) %>%
+  mutate(
+    n_prev = dplyr::lag(n),
+    yoy_growth = ifelse(!is.na(n_prev) & n_prev > 0, (n - n_prev) / n_prev, NA_real_)
+  ) %>%
+  select(author_group_five, pubyear, n, yoy_growth) %>%
+  ungroup()
+
+tem_yoy
+
+tem_cagr <- tem %>%
+  mutate(pubyear = as.integer(pubyear)) %>%
+  group_by(author_group_five) %>%
+  complete(pubyear = years, fill = list(n = 0)) %>%
+  summarise(
+    start_year = min(pubyear),
+    end_year   = max(pubyear),
+    n_start    = n[pubyear == start_year],
+    n_end      = n[pubyear == end_year],
+    growth_rate = ifelse(n_start > 0, ((n_end / n_start)^(1 / 10) - 1)*100, NA_real_)
+  )
+tem_cagr
+```
+
+
+
+```{r}
+tre_temp<- dat|> filter(cite_tre_count!= "" , str_count(cite_tre_count, ",")>5)|>
+  select(oa_id, author_group_five, cite_tre_year, cite_tre_count)
+set.seed(1377)
+tre_sample<- sample_n(tre_temp,5000)
+
+long <- tre_sample %>%
+  separate_rows(cite_tre_year, cite_tre_count, sep = "\\s*,\\s*", convert = TRUE) %>%
+  rename(pubyear = cite_tre_year, n = cite_tre_count) %>%
+  group_by(oa_id, author_group_five, pubyear) %>%
+  summarise(n = sum(n, na.rm = TRUE), .groups = "drop")
+
+# 2) Pivot wide (one column per year)
+wide <- long %>%
+  pivot_wider(names_from = pubyear, values_from = n,
+              values_fill = NA, names_glue = "y{pubyear}")|>
+  filter(!is.na(y2012) & !is.na(y2024))
+
+wide|>pivot_longer(cols = starts_with("y"), names_to = "year", values_to = "citation")|>
+  mutate(year = as.integer(str_remove(year, "^y")))|>
+  group_by(author_group_five, year)|>
+  summarise(mean_citation = mean(citation, na.rm = TRUE), .groups = "drop")|>
+  ggplot(aes(x= year, y = mean_citation))+
+  geom_col()+
+  facet_wrap(~author_group_five)+
+  theme_classic()  
+```
+
+

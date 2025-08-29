@@ -1,9 +1,58 @@
 ---
-title: "report"
-format: html
-editor: visual
+title: "OpenAlex manuscript"
+author:
+  - name: Sajedeh Rasti
+    corresponding: true
+    orcid: 0009-0007-3416-7692
+    email: S.Rasti@tue.nl
+    affiliations:
+      - name: Eindhoven University of Technology
+        department: Industrial Engineering and Innovation Sciences
+        address: Den Dolech 2, 5600 MB, Eindhoven
+        city: Eindhoven
+  - name: Krist Vaesen
+    orcid: 0000-0002-7496-7463
+    email: k.vaesen@tue.nl
+    affiliations:
+      - name: Eindhoven University of Technology
+        department: Industrial Engineering and Innovation Sciences
+        address: Den Dolech 2, 5600 MB, Eindhoven
+        city: Eindhoven     
+  - name: Daniel Lakens
+    orcid: 0000-0002-8393-5316
+    email: D.Lakens@tue.nl
+    affiliations:
+      - name: Eindhoven University of Technology
+        department: Industrial Engineering and Innovation Sciences
+        address: Den Dolech 2, 5600 MB, Eindhoven
+        city: Eindhoven
+bibliography: references.bib  
+floatsintext: true
+format: apaquarto-typst:
+    a4paper: true
+editor_options: 
+  chunk_output_type: console
+abstract: "Abstract"
 ---
 
-## number of enteries
+```{r}
+#| include: false
+#| label: load_data_and_function
 
-`{r} n_initial` was the total entries.
+library(dplyr)
+library(ggplot2)
+library(psych)
+library(FSA)
+library(tidyr)
+library(see)
+library(stringr)
+
+dat<- readRDS("openalexdata_cleaned.rds")
+
+
+```
+
+
+## Introduction
+
+

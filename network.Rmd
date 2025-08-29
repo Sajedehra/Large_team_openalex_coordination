@@ -1,0 +1,132 @@
+---
+title: "Network"
+output: html_document
+date: "2025-08-27"
+---
+
+
+```{r}
+network_temp<- dat|>filter(ref != "")
+
+samp_network_temp<- sample_n(network_temp, 1200)
+```
+
+
+
+```{r}
+library(dplyr)
+library(stringr)
+library(purrr)
+library(tictoc)
+
+bigger_groups <- samp_network_temp|>filter(n_author>=20)
+
+results <- data.frame(
+  oa_id = character(),
+  num_before = integer(),
+  num_after = integer(),
+  stringsAsFactors = FALSE
+)
+
+
+tic()
+for (i in seq_along(bigger_groups)) {
+  
+  # Get author IDs for this row
+  author_ids <- bigger_groups$oa_id_author[i] |>
+    str_split(",\\s*") |>
+    unlist() |>
+    unique()
+  
+  # Generate all unique 3-ID combos
+  if (length(author_ids) < 3) next  # skip if not enough authors
+  combos_3_ids <- combn(author_ids, 3, simplify = FALSE)
+  
+  # Remove current row from dat
+  match_rows <- network_temp |> filter(oa_id != bigger_groups$oa_id[1])
+  
+  # Check if each row contains any combo (no date filter yet)
+  match_rows$matched_combos <- map(match_rows$oa_id_author, function(authors_str) {
+    authors_vec <- str_split(authors_str, ",\\s*") |> unlist()
+    keep(combos_3_ids, ~ all(.x %in% authors_vec))
+  })
+  
+  # Filter only rows that actually match
+  matched <- match_rows |> filter(map_lgl(matched_combos, ~ length(.x) > 0))
+  
+  # Count before vs after
+  current_date <- bigger_groups$pubdate[i]
+  num_before <- sum(matched$pubdate <= current_date, na.rm = TRUE)
+  num_after  <- sum(matched$pubdate >  current_date, na.rm = TRUE)
+  
+  # Store results
+  results <- rbind(
+    results,
+    data.frame(
+      oa_id = bigger_groups$oa_id[i],
+      num_before = num_before,
+      num_after = num_after,
+      stringsAsFactors = FALSE
+    )
+  )
+}
+toc()
+```
+
+```{r}
+smaller_groups <- samp_network_temp|>filter(n_author<20, n_author>=4)
+
+results_smaller <- data.frame(
+  oa_id = character(),
+  num_before = integer(),
+  num_after = integer(),
+  stringsAsFactors = FALSE
+)
+
+
+tic()
+for (i in seq_along(smaller_groups)) {
+  
+  # Get author IDs for this row
+  author_ids <- smaller_groups$oa_id_author[i] |>
+    str_split(",\\s*") |>
+    unlist() |>
+    unique()
+  
+  # Generate all unique 3-ID combos
+  if (length(author_ids) < 3) next  # skip if not enough authors
+  combos_3_ids <- combn(author_ids, 3, simplify = FALSE)
+  
+  # Remove current row from dat
+  match_rows <- samp_network_temp |> filter(oa_id != smaller_groups$oa_id[1])
+  
+  # Check if each row contains any combo (no date filter yet)
+  match_rows$matched_combos <- map(match_rows$oa_id_author, function(authors_str) {
+    authors_vec <- str_split(authors_str, ",\\s*") |> unlist()
+    keep(combos_3_ids, ~ all(.x %in% authors_vec))
+  })
+  
+  # Filter only rows that actually match
+  matched <- match_rows |> filter(map_lgl(matched_combos, ~ length(.x) > 0))
+  
+  # Count before vs after
+  current_date <- smaller_groups$pubdate[i]
+  num_before <- sum(matched$pubdate <= current_date, na.rm = TRUE)
+  num_after  <- sum(matched$pubdate >  current_date, na.rm = TRUE)
+  
+  # Store results
+  results_smaller <- rbind(
+    results_smaller,
+    data.frame(
+      oa_id = smaller_groups$oa_id[i],
+      num_before = num_before,
+      num_after = num_after,
+      stringsAsFactors = FALSE
+    )
+  )
+}
+toc()
+```
+```
+
+

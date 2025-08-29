@@ -79,14 +79,14 @@ dat<- dat|> filter(!str_detect(str_trim(title), regex("^Achievement(s)?$", ignor
 irrelevant_title_keywords<- c("Essay", "symposium", "table of content", "proceedings", "annual meeting", "Blockchain", "Bug", "Temporal Network", "Handbook", "Conference",
                               "control system", "Poetry", "Dance", "update on", "Machine Learning", "NUCLEAR", "PHYSICS", "portfolio", "Solar Power",
                               "Epilogue", "oppening", "Book Review", "COMMENTARY", "Reporting Guideline", "editorial", "nursing", "Publication Information",
-                              "Sibling Designs", "airfoil", "Meeting and Workshops") #9621 cases for the first 4
+                              "Sibling Designs", "airfoil", "Meeting and Workshops", "Correction to") 
 
-
+#Correction to should also be added
 
 pattern <- paste(irrelevant_title_keywords, collapse = "|")
 
 dat <- dat |>
-  filter(!str_detect(title, regex(pattern, ignore_case = TRUE))) # 85252 cases until here (NAs are also removed)
+  filter(!str_detect(title, regex(pattern, ignore_case = TRUE))) # 85252 cases until here (NAs are also removed) {with added correction one day later, 868 cases are added}
 
 #check<- sample_n(dat, 200, replace = FALSE)
 #check2<- sample_n(dat_d, 200, replace = FALSE)
@@ -97,7 +97,7 @@ irrelevant_journal_keywords<- c("History", "software", "Eos", "Acoustics", "Surg
                                 "Entrepreneurial Business", "ACM SIGCSE Bulletin", "computer science", "Environmental", "Pharmacology",
                                 "Metaphilosophy", "Signal Processing", "Electronic", "Nutrition", "Canadian Studies", "Style",
                                 "Fashion", "Entomology", "Ethnology", "Engineering", "Gas", "Critical Care", "Anthropolog", "art",
-                                "Energy Conversion", "Safety Progress", "Mathematic", "Machine Learning", "Revista eureka",
+                                "Energy Conversion", "Safety Progress", "Mathematic", "Machine Learning", "Revista eureka", "BMJ",
                                 "IT services", "Deleted Journal", "Philosophy", "auto world", "National Academy of Sciences", "Choice Reviews Online",
                                 "Hotline", "Economic", "Nursing", "Mobilities", "Conference", "Maska", "Utility Computing", "Green Computing",
                                 "theatre", "IEEE", "Pediatrics", "Information Technology", "Tissue", "Ergonomics", "Industry Applications",
@@ -110,9 +110,10 @@ irrelevant_journal_keywords<- c("History", "software", "Eos", "Acoustics", "Surg
                                 "Applied Probability", "Physics", "plant Science", "Parks", "Nephrology", "techtrends", "Dental", "Fuel", "criminology",
                                 "Training", "Verbal", "Internal Medicine", "St Tikhons University Review", "Petroleum", "CORAK", "Teachers College", 
                                 "Agricultur", "Lawyer", "Orthopt", "information systems", "Finance Review", "Air transport", "Orthopaedic", "Medicine & Biology",
-                                "Obstetrics", "Intelligent Systems", "Transportation Research", "Urology", "dialectica") 
+                                "Obstetrics", "Intelligent Systems", "Transportation Research", "Urology", "dialectica", "JWST Proposal. Cycle 1", "Immunology") 
 
-
+# there are unrealated articles in bmj, but also PRISMA is there
+# "Immunology" and "JWST Proposal. Cycle 1" should be added to the list
 
 pattern2 <- paste(irrelevant_journal_keywords, collapse = "|")
 
@@ -124,7 +125,7 @@ irrelevant_issn<- c("1073-1911", "0022-0418", "1356-5028", "1440-7833", "0894-06
                     "0127-9696", "1470-5427")
 pattern3 <- paste(irrelevant_issn, collapse = "|")
 dat <- dat |>
-  filter(is.na(issn) | !str_detect(issn, regex(pattern3, ignore_case = TRUE))) # 3189 cases removed
+  filter(is.na(issn) | !str_detect(issn, regex(pattern3, ignore_case = TRUE))) # 3189 cases removed (with added keywords next day extra 733 removed)
 
 
 
@@ -156,11 +157,13 @@ n_missing_ref <- sum(dat$ref == "")
 
 
 # checking the most extremes ----------------------------------------------
+dat$citation<- as.numeric(dat$citation)
+dat$citation_2y<- as.numeric(dat$citation_2y)
 
 extr_authors<-dat  |> 
   filter(!is.na(n_author)) |> 
-  slice_max(n_author, n = 10)
-
+  slice_max(n_author, n = 10) # the most extreme is not related to psychology (https://doi.org/10.1001/jama.2023.8823), so it is manually removed
+#dat <- dat[-which(dat$doi == "https://doi.org/10.1001/jama.2023.8823"), ]
 extr_citations<- dat |> 
   filter(!is.na(citation)) |> 
   slice_max(citation, n = 10)
@@ -169,38 +172,28 @@ extr_citations<- dat |>
 
 # grouping based on number of authors (3 different versions)
 
-
-max<- dat_d |> 
-  filter(!is.na(citation)) |> 
-  slice_max(citation, n = 10)
-
-bigger_g<- dat_d|> filter(n_author>= 200)
-phys<- dat_d|> filter(str_detect(journal, regex("Medicine", ignore_case = TRUE)))
-
-max(dat_d$n_author, na.rm = TRUE)
-
-nrow(filter(bigger_g, n_author >= 250))
-nrow(filter(bigger_g, n_author <= 250 & n_author>=211))
+range(dat$n_author, na.rm = TRUE)
+bigger_g<- dat|> filter(n_author>= 100) # only 75 papers are more than 100 authors
 
 
-breaks_a <- c(0, 1, 2, 3, 4, 5, seq(10, 200, by = 5), 250, Inf)
+breaks_a <- c(0, 1, 2, 3, 4, 5, seq(10, 100, by = 5), Inf)
 labels_1to5 <- as.character(1:5)
-labels_5plus <- paste(seq(6, 196, by = 5), seq(10, 200, by = 5), sep = "–")
-labels_tail <- c("201–250", "251+")
+labels_5plus <- paste(seq(6, 96, by = 5), seq(10, 100, by = 5), sep = "–")
+labels_tail <- c("101+")
 labels_a <- c(labels_1to5, labels_5plus, labels_tail)
 
-breaks_b <- c(0, 1, 2, 3, 4, 5, seq(15, 195, by = 10), 250, Inf)
-labels_10s <- paste(seq(6, 190, by = 10), seq(15, 200, by = 10), sep = "–")
-labels_tail_10 <- c("196–250", "251+")
+breaks_b <- c(0, 1, 2, 3, 4, 5, seq(15, 95, by = 10), Inf)
+labels_10s <- paste(seq(6, 90, by = 10), seq(15, 100, by = 10), sep = "–")
+labels_tail_10 <- c("96+")
 labels_b <- c(labels_1to5, labels_10s, labels_tail_10)
 
 
-breaks_c <- c(0, 1, 2, 3, 4, 5, seq(20, 200, by = 15), 250, Inf)
-labels_15s <- paste(seq(6, 186, by = 15), seq(20, 200, by = 15), sep = "–")
+breaks_c <- c(0, 1, 2, 3, 4, 5, seq(20, 100, by = 15), Inf)
+labels_15s <- paste(seq(6, 86, by = 15), seq(20, 100, by = 15), sep = "–")
 labels_c <- c(labels_1to5, labels_15s, labels_tail)
 
-# Apply cut
-dat_d <- dat_d |>
+
+dat <- dat |>
   mutate(author_group_five = cut(n_author, breaks = breaks_a, labels = labels_a, right = TRUE, include.lowest = TRUE),
          author_group_ten = cut(n_author, breaks = breaks_b, labels = labels_b, right = TRUE, include.lowest = TRUE),
          author_group_fifteen = cut(n_author, breaks = breaks_c, labels = labels_c, right = TRUE, include.lowest = TRUE))
@@ -212,8 +205,8 @@ dat_d <- dat_d |>
 
 
 #saving the clean data
-saveRDS(dat, file="D:/Sajedeh/Psydat_cleaned.rds")
-
+saveRDS(dat, file="dat_cleaned.rds")
+saveRDS(dat, file="openalexdata_cleaned.rds")
 
 # taking the subset of the data and save it
 
