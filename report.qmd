@@ -26,10 +26,11 @@ author:
         department: Industrial Engineering and Innovation Sciences
         address: Den Dolech 2, 5600 MB, Eindhoven
         city: Eindhoven
+        
+        
 bibliography: references.bib  
 floatsintext: true
-format: apaquarto-typst:
-    a4paper: true
+format: pdf
 editor_options: 
   chunk_output_type: console
 abstract: "Abstract"
@@ -46,13 +47,252 @@ library(FSA)
 library(tidyr)
 library(see)
 library(stringr)
+library(cowplot)
+library(forcats)
+library(scales)
+library(gridExtra)
 
 dat<- readRDS("openalexdata_cleaned.rds")
-
+n_info <- readRDS("n_info.rds")
+tem_cagr <- readRDS("growth_rate.rds")
 
 ```
 
-
 ## Introduction
 
+[to be discussed]
+
+option 1 (Daniel): 1. Researchers have the freedom to choose which project to work on. 
+2. I would discuss some work that investigates why researchers choose to work on specific topics. The introduction of Julia's thesis, and the MRAI instrument, is relevant here. 
+3. Good decision making about what to study requires some empirical evidence. If you aim for X, does that actually work? 
+4. We focus on a specific decision researchers need to make: Go solo, or team up? 
+5. Do people currently carefully evaluate the benefits and costs? Which are these? From all, we focus on 3 factors to consider: How many citations does the work receive, where is this work published, and social network effect.
+
+option 2: 1. psychology is a field with many big team projects (only medicine, biology, chemistry, physics, and material sciences have more bigger teams) 2. yet in many previous studies on many author papers cluster psychology with other social sciences which can impact the conclusions made on the performance of these papers. 3. moreover, much information is lost on why people decide to work in bigger teams by just looking at the number of authors. 5. this paper will extend the previous works on the performance of big teams by focusing on psychology uniquely and check the performance in terms of having impact, being published in more prestiguos journals and creating authorship network among scientists. It will further look into a random selection of these papers to investigate the topics and circimistances in which scientists decide to work in bigger teams.
+
+Option 3: There is a shift toward big team projects across fields as problems becomes more complex. yet, many can be hesitant in joining the trend as they fear the career benefits of these projects is way less than smaller team projects. This project focuses on the performance of big teams by focusing on psychology uniquely and check the performance in terms of having impact, being published in more prestiguos journals and creating authorship network among scientists.
+
+option 4: one of the first decisions that researchers have to make is going solo, or team up? While this is a question that should be answered by the interdependencies of the question at hand, many consider expected reward of the outcome as a strong factor on making this decision. The widespread expectation is that small team authors give more recognition to researchers. yet, there is an extensive literiture that challenges this idea. Psychology is a unique field as it is divided by progressive and conservative approaches. while the number of coordinated big-team papers increase, they are usually challenged by more conservative scholors to be too much effort to worth. we investigate if there is a career benefit in these papers compared to smaller ones and investigate the reasons scientists in this field decided to team up by going deeper in a random sample of the papers.
+
+option 5: Coordinated science is more normalized in some desciplines such as physics and medicine. Yet, in other fields it is still counted as bad career choice. psychology is an example of field with increasing big-teams and and more conservative look toward doing science.
+
+
+We have heard about anecdotal examples of scientists who received a career boost by being involved in large, coordinated projects. Among the factors they speculated made coordination studies a good career choice were publishing in prestigious journals, receiving more citations, meeting more people with similar interests, and having the opportunity to improve their expertise. Literature also supports some of these benefits through bibliometric and qualitative studies. Wuchty et al. [-@wuchty_increasing_2007] found that in the multiple subfields across science and technology, social sciences, and humanities, teams receive higher citations than single-author papers, even after correcting for self-citations. Uzzi et al. [-@uzzi_atypical_2013] found a positive association between team size and the study's impact. Jones et al. [-@jones_multi-university_2008] also observed that multi-university collaborations received more citations than within-university collaborations. In another study, Wu et al. [-@wu_large_2019] observed that teams with 10 persons are 50% more likely to receive higher citations than solo-authored papers. Additionally, as larger teams often use recent high-impact works as their inspiration, they receive more citations rapidly, due to working on relevant topics of the day. Team projects are also reported to increase productivity and the impact of the work, as well as enhance knowledge and experience [@dehart_team_2017] \[add more qualitative studies, also consider Hunter 2008\].
+
+In this study, we explore the factors that can contribute to the cultural change toward coordination in psychology. To this end, we picked citation counts and prestige of journal of the journal as proxies for popularity and prestige, and the co-authorship network as a proxy for a larger in-group. In this paper, we investigate the trend of working in bigger teams and try to reproduce the relationship between the number of authors and citation count for big-team studies in psychology. We also investigate whether scientists in large-team studies have a larger co-authorship network, to check if they can indeed increase their in-group and find people with similar interests.
+
+## Method
+
+Our analysis used the OpenAlex data snapshot \[cite\] from October 17, 2024. All data processing and analysis were performed in R (version 4.5.1) \[cite\]. (HPC had R version 4.4.1)
+
+```{r}
+#| echo: false
+#| results: asis
+library(glue)
+
+cat(glue(
+'
+flowchart TD
+A["Retrieved unique entries<br/> n = {n_info$initial}"] --> B["Removed records due to:<br/>• Outside the desired publication range<br/> n = {n_info$initial - n_info$Corr_range}<br/>• Not journal articles<br/> n = {n_info$Corr_range - n_info$article}<br/>• Non-English papers<br/> n = {n_info$article - n_info$noeng}"]
+A --> C["Screened entries<br/> n = {n_info$noeng}"]
+C --> D["Manual check for scope<br/> n = 800"]
+D --> E["Removed due to unrelated keywords in title/journal<br/> n = {n_info$noeng - n_info$relevant}"]
+C --> F["Final dataset<br/> n = {n_info$relevant}"]
+F --> G["Missing authors<br/> n = {n_info$miss_author}"]
+'
+))
+```
+
+
+```{mermaid}
+#| echo: false
+
+flowchart TD
+A["Retrieved unique entries<br/> n = 8910241"] --> B["Removed records due to:<br/>• Outside the desired publication range<br/> n = 4159138<br/>• Not journal articles<br/> n = 1198413<br/>• Non-English papers<br/> n = 1033252"]
+A --> C["Screened entries<br/> n = 2519438"]
+C --> D["Manual check for scope<br/> n = 800"]
+D --> E["Removed due to unrelated keywords in title/journal<br/> n = 748118"]
+C --> F["Final dataset<br/> n = 1771320"]
+F --> G["Missing authors<br/> n = 33153"]
+```
+
+
+OpenAlex stores all scholarly documents including journal articles within *works* entity. We iterated over the entire works section of the snapshot and retrieved all entries that listed Psychology and Decision Science as the first or second field. We  included decision science due to the fact that based on our initial investigation, the field of Decision Science in OpenAlex appeared to have many psychology-related articles, including famous papers such as thematic analysis \[cite\] and reproducibility project \[cite\], and exuding this field resulted in overlooking these papers. Such mismatches are predictable given the use of Large Language Models to assign most likely fields [it is google doc from OA, how to cite it]. Therefore, we decided to keep this field and resolve the inclusion of other non-psychology related papers with keywords. Fig shows the detail of preprocessing and the impacts on the size of the dataset.
+
+
+
+```{r}
+#| echo: false
+
+
+"Out of `r n_info$initial` unique entries, we removed `r n_info$initial - n_info$Corr_range` papers out of the publication range of our interest (1975-01-01 to 2024-10-17), `r n_info$Corr_range - n_info$article` papers that were not classified as journal articles, and `r n_info$article - n_info$noeng` non-English records.
+
+A preliminary inspection of titles indicated that there are non-psychology-related entries, as well as documents that cannot be classified as research articles (e.g., acknowledgment documents, book reviews, programs of symposia, and tables of contents). To address this issue, the first author manually reviewed a total of 800 randomly selected entries across four increments, listing the keywords in titles or journals and/or ISSN numbers that were not related to psychology. Removing entries that included these keywords resulted in `r n_info$relevant` entries that were used for final analysis. The list of all keywords is available in the supplementary material."
+```
+
+
+### Measures of Popularity and Prestige
+
+This study focuses on scholarly impact as a marker of popularity. We use (a) total citation counts, (b) second-year citation counts, and (c) publication-date–corrected citation counts. We chose not to adjust for self-citations for two reasons. First, we lacked reliable self-citation data for all papers in the dataset. Second, based on XXX (interview in Penders, 2024) and our own prior observations, large-team papers often bring together many of the field’s active scholars and produce results that serve as reference points for an entire research line. Discounting self-citations would therefore risk understating the field-level impact that is central to this study. In this document, analyses use second-year citation counts; robustness checks with alternative metrics are reported in the Supplementary Materials.
+
+We operationalized prestige using the SCImago Journal Rank (SJR) because Impact Factor data are typically proprietary or closed-access. SJR also provides broader coverage—31,125 journals versus 22,249 in the Web of Science list.  add more about SJR based on González-Pereira 2010 and Guerrero-Bote 2012
+
+### Team size
+
+In this paper, we did not impose a single threshold for “big-team” papers. Wherever possible, we analyzed the full distribution of the number of co-authors. We grouped papers into single-, two-, three-, four-, and five-author papers, and for the remaining papers we exploratively analyzed alternative bin widths of 5, 10, and 15 authors. Since number of papers declines rapidly as the number of authors increases, applying different grouping schemes allowed to have sufficient data in each bin. In each scheme, the final bin captured very large teams (＞100 authors); for the 10-author scheme, the last bin began at ≥96 authors to preserve 10-author intervals. In the remainder of this document, we report results using a bin width of 5 authors; robustness checks with other grouping schemes are provided in the Supplementary Materials, and reveal that bin-size does not matter for our main conclusions .
+
+### Missing Data
+
+`r round((n_info$miss_author/n_info$relevant)*100, digit = 2)`% of entries (n = `r n_info$miss_author`) did not include information on the number of authors and about `r round((n_info$missing_ref/n_info$relevant)*100, digit = 2)`% of papers (n = `r n_info$missing_ref`) did not include information on the reference list. As expected, the relative number of missing information for both author and reference lists decreases over time, with missing references showing a steadier trend (@fig-miss-info). However, given that the analysis of networks uses the reference list, it is possible that the results are biased to more recent studies, and the missing references to act a moderator for that analysis.
+
+```{r}
+#| label: fig-miss-info
+#| fig-cap: "Trends of missing information over time"
+#| warning: false
+#| message: false
+#| echo: false
+#| fig-align: center
+
+
+missing_years<- dat|>mutate(pubyear = format(pubdate, "%Y"))|> group_by(pubyear)|> summarise(remiss_author= sum(is.na(n_author))/n())
+
+miss_author<-ggplot(aes(x = as.integer(pubyear), y = remiss_author), data= missing_years)+
+  geom_line(color = "blue")+
+  geom_point(color = "red")+
+  theme_classic()+
+  labs(x = "Year of Publication", y = "Relative Number of Missing Authors")
+
+missing_ref <- dat|>mutate(pubyear = format(pubdate, "%Y"))|> group_by(pubyear)|> summarise(remiss_ref = sum(ref == "")/n())
+
+miss_ref<- ggplot(aes(x = as.integer(pubyear), y = remiss_ref), data= missing_ref)+
+  geom_line(color = "blue")+
+  geom_point(color = "red")+
+  theme_classic()+
+  labs(x = "Year of Publication", y = "Relative Number of Missing References")
+
+plot_grid(miss_author, miss_ref,nrow = 1, ncol = 2)
+```
+
+
+## Result
+
+Results are organized over the following themes:
+
+**Big-team science is an increasing phenomenon**
+
+@fig-author-trend shows an increased frequency of the big-team papers in Psychology. Over the last decade, the papers with a larger author list increased dramatically, and in some cases had more than double the growth rates of smaller author groups
+
+
+```{r}
+#| label: fig-author-trend
+#| fig-cap: "Growth of big team papers"
+#| warning: false
+#| message: false
+#| echo: false
+#| fig-align: center
+
+
+heat<- dat|>  mutate(pubyear = as.integer(format(as.Date(pubdate), "%Y")))|>
+  ggplot( aes(x = pubyear, y = n_author)) +
+  geom_bin2d(binwidth = c(1, 1)) +
+  scale_fill_viridis_c(trans = "log10") +  
+  labs(x = "Year", y = "Team size", fill = "Count") +
+  theme_classic()
+
+
+plot_growth <- tem_cagr |>
+  filter(!is.na(author_group_five))|>
+  ggplot(aes(x = growth_rate, y = author_group_five)) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_segment(aes(x = 0, xend = growth_rate, y = author_group_five, yend = author_group_five), color="grey") +
+  geom_point(size = 3, color="orange") +
+  scale_x_continuous(labels = label_number(suffix = "%")) + 
+  labs(x = "Ten-year growth rate (%)", y = "Number of authors") +
+  theme_classic()+
+  theme(axis.line.x = element_line(size = 0.5, linetype = "solid", colour = "grey"))
+
+plot_grid(heat,plot_growth,nrow = 2, ncol = 1, labels = c("A", "B"))
+```
+
+
+**Larger teams receive more citations and are more popular**
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+
+n_used <- sum(complete.cases(dat$n_author, dat$citation))
+
+cit_corr<-cor.test(dat$n_author, dat$citation, method = "spearman", use = "complete.obs")
+cit2_corr<-cor.test(dat$n_author, dat$citation_2y, method = "spearman", use = "complete.obs")
+cityear_corr<-cor.test(dat$n_author, dat$corr_citation, method = "spearman", use = "complete.obs")
+
+drop0 <- function(x) sub("^0\\.", ".", x)
+apa_p <- function(p) ifelse(p < .001, "p < .001",
+                            paste0("p = ", drop0(sprintf("%.3f", p))))
+rho1 <- drop0(sprintf("%.3f", unname(cit_corr$estimate)))
+p_txt1 <- apa_p(cit_corr$p.value)
+
+rho2 <- drop0(sprintf("%.3f", unname(cit2_corr$estimate)))
+p_txt2 <- apa_p(cit2_corr$p.value)
+
+rho3 <- drop0(sprintf("%.3f", unname(cityear_corr$estimate)))
+p_txt3 <- apa_p(cityear_corr$p.value)
+```
+
+
+Even though all the top 10 citation classics in our sample are produced in smaller teams (4 authors or fewer), overall, bigger teams receive more citations ($\rho$ = `r rho1`, `r p_txt1` (N = `r n_used`)). This relationship is stronger for the second-year citation count ($\rho$ = `r rho2`, `r p_txt2` (N = `r n_used`)) and corrected citations based on publication date ($\rho$ = `r rho3`, `r p_txt3` (N = `r n_used`)). Under the grouping scheme, the median and mean citation counts increased fairly consistently up to the 45-author group, followed by many fluctuations (see @fig-des-citation). 
+
+Across the 70th, 80th, 90th, and 99th percentiles, papers from smaller teams consistently receive fewer citations than of larger teams, showcasing the higher risks of low gain in smaller teams (see @fig-des-citation B).
+
+```{r}
+#| label: fig-des-citation
+#| fig-cap: "Team size and citation counts"
+#| warning: false
+#| message: false
+#| echo: false
+#| fig-align: center
+
+box<- dat |>
+  filter(!is.na(author_group_five))|>
+  group_by(author_group_five) |>
+  ggplot(aes(x = author_group_five, y = citation_2y)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 250))+
+  labs(x = "Author groups", y= "Second-year citation count")
+
+
+percentile<- dat|> filter(!is.na(author_group_five))|>group_by(author_group_five)|> summarise(value= quantile(citation_2y, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+  ggplot(aes(x=author_group_five, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  labs(x= "Author group", y= "Second-year citation")+
+  coord_cartesian(ylim = c(0, 1000))
+
+#plot_grid(box, percentile,nrow = 2, ncol = 1, labels = c("A", "B"))
+grid.arrange(box, percentile)
+```
+
+
+**Larger teams are published in more prestigious journals**
+
+Even though rank correlation among number of authors and SJR value is not high (.17), Fig shows that mean and median SJR value increase consistently until 56-60 authors bin, then fluctuate for larger groups.
+
+Across the 70th, 80th, 90th, and 99th percentiles, papers from smaller teams consistently receive fewer citations than of larger teams, showcasing the higher risks of low gain in smaller teams
+
+**Network**
+
+Pairwise comparisons of citation counts show that papers with more than 20 authors have higher mean citation ranks than smaller teams. Therefore, we use 20 authors as the cutoff for “big teams” in this analysis (i.e., ≥20).
+
+**Qualitative checks**
+
+\newpage
+
+## References
 
