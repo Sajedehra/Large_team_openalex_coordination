@@ -36,13 +36,33 @@ tem_cagr <- tem %>%
   summarise(
     start_year = min(pubyear),
     end_year   = max(pubyear),
-    n_start    = n[pubyear == start_year],
-    n_end      = n[pubyear == end_year],
+    n_start    = n[pubyear == start_year]+1,
+    n_end      = n[pubyear == end_year]+1,
     growth_rate = ifelse(n_start > 0, ((n_end / n_start)^(1 / 10) - 1)*100, NA_real_)
   )
+saveRDS(tem_cagr, "growth_rate.rds")
 tem_cagr
 ```
 
+```{r}
+library(dplyr)
+library(forcats)
+library(ggplot2)
+library(scales)
+
+plot_dat <- tem_cagr |>
+  mutate(author_group_five = fct_reorder(author_group_five, growth_rate, .desc = TRUE))|>
+  filter(!is.na(author_group_five))
+
+ggplot(plot_dat, aes(x = growth_rate, y = author_group_five)) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_segment(aes(x = 0, xend = growth_rate, y = author_group_five, yend = author_group_five)) +
+  geom_point(size = 3) +
+  scale_x_continuous(labels = label_number(suffix = "%")) +  # growth_rate already *100
+  labs(x = "Ten-year growth rate (%)", y = "Number of authors") +
+  theme_classic()
+
+```
 
 
 ```{r}

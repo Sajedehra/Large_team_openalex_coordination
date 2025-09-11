@@ -128,7 +128,7 @@ dat <- dat |>
   filter(is.na(issn) | !str_detect(issn, regex(pattern3, ignore_case = TRUE))) # 3189 cases removed (with added keywords next day extra 733 removed)
 
 
-
+n_irrelevant <- nrow(dat)
 
 
 #calculating number of authors
@@ -201,12 +201,18 @@ dat <- dat |>
 
 
 
-
+n_info <- data.frame(initial = n_notduplicate,
+                     Corr_range = n_correctyear,
+                     article = n_article,
+                     noeng = n_english,
+                     relevant = n_irrelevant)
 
 
 #saving the clean data
 saveRDS(dat, file="dat_cleaned.rds")
 saveRDS(dat, file="openalexdata_cleaned.rds")
+saveRDS(n_info, file= "n_info.rds")
+
 
 # taking the subset of the data and save it
 

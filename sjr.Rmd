@@ -1,0 +1,89 @@
+---
+title: "sjr scores"
+output: html_document
+date: "2025-09-02"
+---
+
+```{r}
+library(readr)
+library(dplyr)
+library(stringr)
+
+SJR<- read_delim('scimagojr 2024.csv', delim = ";")
+
+SJR<- SJR|> separate_rows(Issn, sep = "\\s*,\\s*", convert = TRUE)|>rename(stanissn = Issn)
+
+dat <- dat |>
+  filter(!is.na(issn), issn != "") |>
+  mutate(stanissn = gsub("-", "", issn))
+
+
+dat<- dat|> left_join(SJR |> select(stanissn, SJR), by = "stanissn")
+
+dat<- dat|> 
+  filter(!is.na(SJR), SJR != "") |> mutate(SJR = gsub(",", "", SJR), SJR=as.numeric(SJR))
+ 
+```
+
+
+```{r}
+
+summary_table_sjr<- dat|>filter(!is.na(SJR))|>summarise(n=n(),
+            across(c(SJR), list( mean = mean, sd = sd, median = median, max = max, min = min), .names = "{.col}_{.fn}"))
+
+summary_table_sjr
+```
+
+```{r}
+corrsjr<- cor(dat$n_author, dat$SJR , method = "spearman", use = "complete.obs")
+print(corrsjr)
+
+```
+
+```{r}
+sjrdes<- dat|>
+  group_by(author_group_five)|>
+  summarise(n=n(),
+            across(c(SJR), list( mean = ~mean(.x, na.rm = TRUE),
+        sd = ~sd(.x, na.rm = TRUE),
+        median = ~median(.x, na.rm = TRUE),
+        IQR = ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+print(sjrdes)
+
+```
+
+
+```{r}
+sjrdes_ten<- dat|>
+  group_by(author_group_ten)|>
+  summarise(n=n(),
+            across(c(SJR), list( mean = ~mean(.x, na.rm = TRUE),
+        sd = ~sd(.x, na.rm = TRUE),
+        median = ~median(.x, na.rm = TRUE),
+        IQR = ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+print(sjrdes_ten)
+
+
+```
+
+```{r}
+sjrdes_fif<- dat|>
+  group_by(author_group_fifteen)|>
+  summarise(n=n(),
+            across(c(SJR), list( mean = ~mean(.x, na.rm = TRUE),
+        sd = ~sd(.x, na.rm = TRUE),
+        median = ~median(.x, na.rm = TRUE),
+        IQR = ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+print(sjrdes_fif)
+
+
+```
+
+
+
