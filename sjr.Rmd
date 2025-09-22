@@ -9,39 +9,43 @@ library(readr)
 library(dplyr)
 library(stringr)
 
+dat<- readRDS("openalexdata_cleaned.rds")
 SJR<- read_delim('scimagojr 2024.csv', delim = ";")
+
+
+length(unique(SJR$Issn))
+SJR<- SJR|>distinct(Issn, .keep_all = TRUE)
 
 SJR<- SJR|> separate_rows(Issn, sep = "\\s*,\\s*", convert = TRUE)|>rename(stanissn = Issn)
 
-dat <- dat |>
-  filter(!is.na(issn), issn != "") |>
+dat_sjr <- dat |>
   mutate(stanissn = gsub("-", "", issn))
 
 
-dat<- dat|> left_join(SJR |> select(stanissn, SJR), by = "stanissn")
+dat_sjr<- dat_sjr|> left_join(SJR |> select(stanissn, SJR), by = "stanissn")
 
-dat<- dat|> 
-  filter(!is.na(SJR), SJR != "") |> mutate(SJR = gsub(",", "", SJR), SJR=as.numeric(SJR))
+dat_sjr<- dat_sjr|> 
+  filter(!is.na(SJR), SJR != "") |> mutate(SJR = gsub(",", ".", SJR), SJR=as.numeric(SJR))
  
 ```
 
 
 ```{r}
 
-summary_table_sjr<- dat|>filter(!is.na(SJR))|>summarise(n=n(),
+summary_table_sjr<- dat_sjr|>filter(!is.na(SJR))|>summarise(n=n(),
             across(c(SJR), list( mean = mean, sd = sd, median = median, max = max, min = min), .names = "{.col}_{.fn}"))
 
 summary_table_sjr
 ```
 
 ```{r}
-corrsjr<- cor(dat$n_author, dat$SJR , method = "spearman", use = "complete.obs")
+corrsjr<- cor(dat_sjr$n_author, dat_sjr$SJR , method = "spearman", use = "complete.obs")
 print(corrsjr)
 
 ```
 
 ```{r}
-sjrdes<- dat|>
+sjrdes<- dat_sjr|>
   group_by(author_group_five)|>
   summarise(n=n(),
             across(c(SJR), list( mean = ~mean(.x, na.rm = TRUE),
@@ -54,6 +58,70 @@ print(sjrdes)
 
 ```
 
+
+```{r}
+dat_sjr |>
+  group_by(author_group_five) |>
+  ggplot(aes(x = author_group_five, y = SJR)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 15))+
+  labs(x = "Author groups", y= "SJR")
+```
+
+
+```{r}
+dat_sjr|> filter(!is.na(author_group_five))|>group_by(author_group_five)|> summarise(value= quantile(SJR, c(.7, .8, .90, .99, .9999)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99, .9999)))|>
+  ggplot(aes(x=author_group_five, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  labs(x= "Author group", y= "SJR")
+  
+```
+
+```{r}
+kruskal.test(SJR ~ author_group_five, data = dat_sjr)
+```
+
+```{r}
+duun_five_sjr<- dunnTest(SJR ~ author_group_five, data = dat_sjr, method = "bh")
+duun_five_sjr$res[order(-duun_five_sjr$res$Z),]
+```
+
+
+```{r}
+
+
+# Extract group names
+dunn_summary_five_sjr <- duun_five_sjr$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+# Count wins
+group_scores_five_sjr <- dunn_summary_five_sjr |>
+  count(winner, name = "wins")
+
+# Optionally count losses too
+group_losses_five_sjr <- dunn_summary_five_sjr |>
+  count(loser, name = "losses")
+
+# Combine
+ranking_five_sjr <- full_join(group_scores_five_sjr, group_losses_five_sjr, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         net_score = wins - losses) |>
+  arrange(desc(net_score))
+
+ranking_five_sjr
+```
 
 ```{r}
 sjrdes_ten<- dat|>
@@ -84,6 +152,3 @@ print(sjrdes_fif)
 
 
 ```
-
-
-

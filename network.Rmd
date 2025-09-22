@@ -127,6 +127,86 @@ for (i in seq_along(smaller_groups)) {
 }
 toc()
 ```
+
+
+
+```{r}
+tempteam<- dat|> filter(n_author>= 20)|> select(oa_id, title, pubdate, n_author, oa_id_author)
+
+teamtbl<- tibble(paper_id<-character(), dyads<-charachter(), team_id<- charecter())
+
+teamtbl <- tempteam %>%
+  mutate(author_ids = str_split(oa_id_author, "\\s*,\\s*")) %>%
+  transmute(paper_id = oa_id, author_ids, pubdate, n_author) %>%
+  pmap_dfr(function(paper_id, author_ids, pubdate, n_author) {
+    ids <- unique(author_ids[author_ids != ""])
+    if (length(ids) < 2) return(tibble())
+    mat <- combn(ids, 2)  # 2 x K matrix
+    tibble(
+      paper_id = paper_id,
+      pubdate=pubdate,
+      n_author=n_author,
+      author1  = mat[1, ],
+      author2  = mat[2, ]
+    ) %>% mutate(team_id = paste0(paper_id, "_", row_number()))
+  })
+
+
+
 ```
+
+
+```{r}
+tempsmallteam<- dat|> filter(n_author<20, n_author>=3)|> select(oa_id, title, pubdate, n_author, oa_id_author)
+
+
+teamsmalltbl <- tibble(paper_id = character(),
+                  author1  = character(),
+                  author2  = character(),
+                  team_id  = character(),
+                  pubdate  = as.Date(character()))
+
+for (i in seq_len(nrow(tempsmallteam))) {
+  author_ids <- str_split(tempsmallteam$oa_id_author[i], ",\\s*")[[1]]
+  author_ids <- unique(author_ids[author_ids != ""])
+  if (length(author_ids) >= 2) {
+    cm <- combn(author_ids, 2)
+    df <- tibble(
+      paper_id = tempsmallteam$oa_id[i],
+      author1  = cm[1, ],
+      author2  = cm[2, ],
+      team_id  = paste0(tempsmallteam$oa_id[i], "_", seq_len(ncol(cm))),
+      pubdate  = as.Date(tempsmallteam$pubdate[i])
+    ) %>% select(paper_id, author1, author2, team_id, pubdate)
+    teamsmalltbl <- bind_rows(teamsmalltbl, df)
+  }
+}
+```
+
+
+```{r}
+dyads_detail <- teamtbl %>%
+  mutate(a = pmin(author1, author2),
+         b = pmax(author1, author2)) %>%
+  distinct(paper_id, a, b, pubdate) %>%
+  group_by(a, b) %>%
+  summarise(
+    n_papers   = n_distinct(paper_id),
+    paper_ids  = paste(sort(unique(paper_id)), collapse = ", "),
+    years      = paste(sort(unique(format(as.Date(pubdate), "%Y"))), collapse = ", "),
+    .groups = "drop"
+  )
+
+dyads_detail
+```
+
+
+```{r}
+networktbl<- tibble()
+for (i in seq_along(teamtbl)) {
+  
+}
+```
+
 
 
