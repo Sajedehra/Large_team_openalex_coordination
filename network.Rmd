@@ -133,7 +133,7 @@ toc()
 ```{r}
 tempteam<- dat|> filter(n_author>= 20)|> select(oa_id, title, pubdate, n_author, oa_id_author)
 
-teamtbl<- tibble(paper_id<-character(), dyads<-charachter(), team_id<- charecter())
+teamtbl<- tibble(paper_id<-character(), dyads<-character(), team_id<- character())
 
 teamtbl <- tempteam %>%
   mutate(author_ids = str_split(oa_id_author, "\\s*,\\s*")) %>%
@@ -151,8 +151,9 @@ teamtbl <- tempteam %>%
     ) %>% mutate(team_id = paste0(paper_id, "_", row_number()))
   })
 
-
-
+teamtbl$size<- "big"
+teamtbl<-teamtbl[, -3]
+saveRDS(teamtbl, "bigteamnetwork.rds")
 ```
 
 
@@ -181,7 +182,41 @@ for (i in seq_len(nrow(tempsmallteam))) {
     teamsmalltbl <- bind_rows(teamsmalltbl, df)
   }
 }
+
+teamsmalltbl$size<- "small"
+saveRDS(teamsmalltbl, "smallteamnetwork.rds")
 ```
+
+```{r}
+team_table<-rbind(teamtbl, teamsmalltbl)
+
+dup_team<- team_table[
+  duplicated(team_table[, 2:3]) |
+  duplicated(team_table[, 2:3], fromLast = TRUE), ]
+
+#dup_test<- team_table|> rowwise()|> mutate(dyad = paste(sort(c(author1, author2)), collapse = "_"))|>ungroup()
+#dup_test_team<- dup_test[duplicated(dup_test[,7]) |duplicated(dup_test[,7], fromLast = TRUE), ]
+
+'a <- pmin(team_table$author1, team_table$author2)
+> b <- pmax(team_table$author1, team_table$author2)
+> idx <- duplicated(data.frame(a,b)) | duplicated(data.frame(a,b), fromLast = TRUE)
+> dup_team <- team_table[idx, ] '
+
+
+nested_network <- dup_team |>group_by(author1,author2) |> nest()
+
+nested_network_filter<- nested_network|>filter(map_int(data, nrow) > 1)
+
+
+nested_network_filter_big <- nested_network_filter |> filter(map_lgl(data,~ any(.x$size == "big")))
+
+
+#nested_network_check <- nested_network_filter_big |> filter(map_lgl(data,~ any(.x$size == "small")))
+ 
+nested_network_filter_small<- anti_join(nested_network_filter ,nested_network_filter_big, by = c("author1", "author2"))
+ 
+```
+
 
 
 ```{r}
