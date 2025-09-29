@@ -17,3 +17,10 @@ Meeting sep 11:
 - We have to make a decision what counts as prestige, as we may look into it.
 - we decided the missing authors should be removed.
 
+Meeting Sep 25:
+
+- we decided we do not have a reasonable comparison point at this stage for network analysis, so we will drop it from the analysis.
+
+Sep 29:
+
+- I just found out there are more non-articles in the data through reading the randomly selected papers for qualitative part of the project. I will add "Day-by Day" to the keywords for cleaning the data, and remove from the current dataset.
