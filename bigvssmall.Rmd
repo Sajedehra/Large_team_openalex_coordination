@@ -6,7 +6,7 @@ date: "2025-09-24"
 
 ```{r}
 
-big_authors <- dat_sjr |> filter(n_author>=20)|>
+big_authors <- dat |> filter(n_author>=20)|>
   select(title, oa_id_author) %>%
   separate_rows(oa_id_author, sep = ",\\s*") %>%
   filter(oa_id_author != "") %>%
@@ -17,8 +17,8 @@ big_authors <- big_authors|>distinct(authors)
 big_authors_unique_count<- nrow(big_authors)
 
 
-dat_small <- dat_sjr|>filter(n_author<20)
-dat_big<- dat_sjr|>filter(n_author>=20)
+dat_small <- dat|>filter(n_author<20)
+dat_big<- dat|>filter(n_author>=20)
 
 
 library(dplyr)
@@ -55,6 +55,44 @@ for (i in 1:nrow(big_authors)) {  # probably meant seq_along(...) or 1:nrow(...)
 saveRDS(author_performance, "author_performance.rds")
 
 ```
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(purrr)
+library(rlang)
+
+authors_long <- dat_sjr %>%
+  filter(!is.na(oa_id_author), oa_id_author != "") %>%
+  separate_rows(oa_id_author, sep = ",\\s*") %>%
+  mutate(oa_id_author = str_remove_all(oa_id_author, '[\\[\\]"\\\']') |> str_trim())
+
+small_nested <- authors_long %>%
+  filter(n_author < 20) %>%
+  nest(small_project = -oa_id_author)   # list-col named small_project
+
+big_nested <- authors_long %>%
+  filter(n_author >= 20) %>%
+  nest(big_project = -oa_id_author)     # list-col named big_project
+
+# ensure big_authors IDs match cleaned IDs
+big_authors <- big_authors %>%
+  mutate(authors = str_remove_all(authors, '[\\[\\]"\\\']') |> str_trim()) %>%
+  distinct(authors)
+
+author_performance_SJR <- big_authors %>%
+  rename(author_id = authors) %>%
+  left_join(small_nested, by = c("author_id" = "oa_id_author")) %>%
+  left_join(big_nested,   by = c("author_id" = "oa_id_author")) %>%
+  mutate(
+    small_project = map(small_project, ~ .x %||% tibble()),
+    big_project   = map(big_project,   ~ .x %||% tibble())
+  )
+
+```
+
 
 
 ```{r}
@@ -213,5 +251,99 @@ bigauthor_performance_5|>select(citation_2y_median_small, citation_2y_median_big
 ```{r}
 library(TOSTER)
 bigauthor_performance_5|>select(citation_2y_median_small, citation_2y_median_big)|>pivot_longer(cols = c(citation_2y_median_small, citation_2y_median_big), names_to = "group", values_to = "citation_2y_median")|>ses_calc(rank(citation_2y_median)~group, paired = FALSE)
+```
+
+
+```{r}
+bigauthor_performance_sjr<- author_performance_SJR|> filter(map_int(small_project, nrow) > 1)
+
+
+bigauthor_performance_sjr5 <- bigauthor_performance_sjr5 %>%
+  mutate(
+    small_project = map(small_project, ~ dplyr::select(.x, title, pubdate, n_author, SJR))
+  )
+
+bigauthor_performance_sjr5 <- bigauthor_performance_sjr5 %>%
+  mutate(
+    big_project = map(big_project, ~ dplyr::select(.x, title, pubdate, n_author, SJR))
+  )
+
+library(dplyr)
+library(tidyr)
+library(purrr)
+
+cols <- c("SJR")
+funs <- list(mean = ~mean(.x, na.rm = TRUE),
+             sd   = ~sd(.x,   na.rm = TRUE),
+             median = ~median(.x, na.rm = TRUE))
+
+summarize_cols <- function(df, cols, suffix = "") {
+  if (is.null(df) || nrow(df) == 0) {
+    # return NA columns when a nested tibble is empty
+    nms <- as.vector(outer(cols, names(funs), paste, sep = "_"))
+    nms <- paste0(nms, suffix)
+    return(tibble::as_tibble(setNames(as.list(rep(NA_real_, length(nms))), nms)))
+  }
+  df %>%
+    summarise(across(all_of(cols), funs, .names = "{.col}_{.fn}")) %>%
+    rename_with(~ paste0(.x, suffix))
+}
+
+bigauthor_performance_sjr2 <- bigauthor_performance_sjr %>%
+  mutate(
+    small_stats = map(small_project, ~ summarize_cols(.x, cols, "_small")),
+    big_stats   = map(big_project,   ~ summarize_cols(.x, cols, "_big"))
+  ) %>%
+  unnest_wider(small_stats) %>%
+  unnest_wider(big_stats)
+
+
+saveRDS(bigauthor_performance_sjr, "bigauthor_performance_sjr.rds")
+saveRDS(bigauthor_performance_sjr2, "bigauthor_performance_sjr2.rds")
+
+```
+
+
+```{r}
+bigauthor_performance_sjr5 <- bigauthor_performance_sjr%>%
+  mutate(
+    small_project = map(
+      small_project,
+      ~ dplyr::filter(.x, !is.na(n_author) & n_author <= 5)   # trim inner tibble
+    )
+  ) %>%
+  filter(map_int(small_project, nrow) > 0) 
+
+bigauthor_performance_sjr5 <- bigauthor_performance_sjr5|>filter(map_int(small_project, nrow) > 1)
+library(dplyr)
+library(tidyr)
+library(purrr)
+
+cols <- c("SJR")
+funs <- list(mean = ~mean(.x, na.rm = TRUE),
+             sd   = ~sd(.x,   na.rm = TRUE),
+             median = ~median(.x, na.rm = TRUE))
+
+summarize_cols <- function(df, cols, suffix = "") {
+  if (is.null(df) || nrow(df) == 0) {
+    # return NA columns when a nested tibble is empty
+    nms <- as.vector(outer(cols, names(funs), paste, sep = "_"))
+    nms <- paste0(nms, suffix)
+    return(tibble::as_tibble(setNames(as.list(rep(NA_real_, length(nms))), nms)))
+  }
+  df %>%
+    summarise(across(all_of(cols), funs, .names = "{.col}_{.fn}")) %>%
+    rename_with(~ paste0(.x, suffix))
+}
+
+bigauthor_performance_sjr5 <- bigauthor_performance_sjr5 %>%
+  mutate(
+    small_stats = map(small_project, ~ summarize_cols(.x, cols, "_small")),
+    big_stats   = map(big_project,   ~ summarize_cols(.x, cols, "_big"))
+  ) %>%
+  unnest_wider(small_stats) %>%
+  unnest_wider(big_stats)
+
+saveRDS(bigauthor_performance_sjr2, "bigauthor_performance_sjr2.rds")
 ```
 
