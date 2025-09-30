@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+author_performance.rds
+redundant_codes.R
