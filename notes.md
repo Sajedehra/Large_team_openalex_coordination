@@ -25,3 +25,6 @@ Sep 29:
 
 - I just found out there are more non-articles in the data through reading the randomly selected papers for qualitative part of the project. I will add "Day-by Day" to the keywords for cleaning the data, and ask supervisors for what to do with the cases (there are some non-psychology in the data as well). I also found an oral presentation that is classified as article: https://openalex.org/works/W2150114669
 
+Sep 30:
+
+- there is a collection of papers (paper series) that has been included as one big paper in OpenAlex: https://openalex.org/W4312679429
