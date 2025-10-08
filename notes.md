@@ -28,3 +28,8 @@ Sep 29:
 Sep 30:
 
 - there is a collection of papers (paper series) that has been included as one big paper in OpenAlex: https://openalex.org/W4312679429
+
+Oct 8:
+
+- today I found another keyword "correction": https://openalex.org/W2979929196
+- Last week on Thursday we decided to finish the qualitative part to include 500 and then remove all the unrelated paper I found during this checks and rerun all the analyses.
