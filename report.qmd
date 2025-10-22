@@ -51,9 +51,12 @@ library(cowplot)
 library(forcats)
 library(scales)
 library(gridExtra)
+library(tibble)
 
 dat<- readRDS("final_clean_dat.rds")
-tem_cagr <- readRDS("growth_rate.rds")
+dat_sjr<- readRDS("dat_sjr.rds")
+bigauthor_performance_5<- readRDS("bigauthor_performance_5.rds")
+bigauthor_performance_sjr5<- readRDS("bigauthor_performance_sjr5.rds")
 
 ```
 
@@ -100,7 +103,7 @@ We operationalized the impact of journals using the SCImago Journal Rank (SJR). 
 
 ### Team size
 
-In this paper, we did not impose a single threshold for “big-team” papers. Wherever possible, we analyzed the full distribution of the number of co-authors. We grouped papers into single-, two-, three-, four-, and five-author papers, and for the remaining papers we exploratively analyzed alternative bin widths of 5, 10, and 15 authors. In each team-size bin, the final bin captured very large teams (＞100 authors); except for the 10-author scheme, where the last bin began at ≥96 authors to preserve 10-author intervals. In the remainder of this document, we report results using a bin width of 5 authors; robustness checks with other grouping schemes are provided in the Supplementary Materials and reveal that bin-size does not matter for the main conclusions.
+In this paper, we did not impose a single threshold for “big-team” papers. Wherever possible, we analyzed the full distribution of the number of co-authors. We grouped papers into single-, two-, three-, four-, and five-author papers, and for the remaining papers we exploratively analyzed alternative bin widths of 5, 10, and 15 authors. In each team-size bin, the final bin captured very large teams (＞100 authors); except for the 10-author scheme, where the last bin began at ≥96 authors to preserve 10-author intervals. In the remainder of this document, we report results using a bin width of 10 authors; robustness checks with other grouping schemes are provided in the Supplementary Materials and reveal that bin-size does not matter for the main conclusions.
 
 ### Qualitative checks
 
@@ -124,27 +127,23 @@ Results are organized over the following themes:
 #| echo: false
 #| fig-align: center
 
+pal <- c("#023743FF","#72874EFF","#476F84FF","#A4BED5FF","#A40000FF",
+         "#453947FF","#774762FF","#BA6E1DFF","#D6BB3BFF","#755028FF",
+         "#205F4BFF","#913914FF","#585854FF","#F0A430FF","#007E2FFF",
+         "#768048FF","#800000FF","#1B3A54FF","#16317DFF","#FFCD12FF",
+         "#B86092FF","#721B3EFF","#00B7A7FF","#F2DD78FF","#FED789FF")
 
-heat<- dat|>  mutate(pubyear = as.integer(format(as.Date(pubdate), "%Y")))|>
-  ggplot( aes(x = pubyear, y = n_author)) +
-  geom_bin2d(binwidth = c(1, 1)) +
-  scale_fill_viridis_c(trans = "log10") +  
-  labs(x = "Year", y = "Team size", fill = "Count") +
-  theme_classic()
-
-
-plot_growth <- tem_cagr |>
-  filter(!is.na(author_group_five))|>
-  ggplot(aes(x = growth_rate, y = author_group_five)) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  geom_segment(aes(x = 0, xend = growth_rate, y = author_group_five, yend = author_group_five), color="grey") +
-  geom_point(size = 3, color="orange") +
-  scale_x_continuous(labels = label_number(suffix = "%")) + 
-  labs(x = "Ten-year growth rate (%)", y = "Number of authors") +
+dat |>
+  mutate(pubyear = as.integer(format(as.Date(pubdate), "%Y"))) |>
+  ggplot(aes(x = pubyear, color = author_group_ten)) +
+  geom_density(adjust = 2, linewidth = 1.2) +
+  geom_vline(xintercept=c(2014,2024), linetype="dashed", colour = "darkred")+
+  facet_wrap(~ author_group_ten, axes = "all") +
+  scale_color_manual(values = pal, guide = "none") +
   theme_classic()+
-  theme(axis.line.x = element_line(size = 0.5, linetype = "solid", colour = "grey"))
-
-plot_grid(heat,plot_growth,nrow = 2, ncol = 1, labels = c("A", "B"))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  xlab("Publication year")+
+  ylab("Density")
 ```
 
 **Larger teams receive more citations**
@@ -184,44 +183,137 @@ Overall, bigger teams receive more citations ($\rho$ = `r rho1`, `r p_txt1` (N =
 #| echo: false
 #| fig-align: center
 
-box<- dat |>
-  filter(!is.na(author_group_five))|>
-  group_by(author_group_five) |>
-  ggplot(aes(x = author_group_five, y = citation_2y)) +
-  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+dat |>
+  group_by(author_group_ten) |>
+  ggplot(aes(x = author_group_ten, y = citation_2y)) +
+  geom_boxplot(outliers = FALSE, fill = "#A4BED5FF") +
   stat_summary(
-    fun = mean, geom = "point", color = "red", size = 2
+    fun = mean, geom = "point", color = "#800000FF", size = 2
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
-  coord_cartesian(ylim = c(0, 250))+
   labs(x = "Author groups", y= "Second-year citation count")
 
-
-percentile<- dat|> filter(!is.na(author_group_five))|>group_by(author_group_five)|> summarise(value= quantile(citation_2y, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
-  ggplot(aes(x=author_group_five, y = value, color = percentile))+
-  geom_point(size= 2)+
-  theme_classic()+
-  labs(x= "Author group", y= "Second-year citation")+
-  coord_cartesian(ylim = c(0, 1000))
-
-#plot_grid(box, percentile,nrow = 2, ncol = 1, labels = c("A", "B"))
-grid.arrange(box, percentile)
 ```
+
+
 
 **Larger teams are published in more prestigious journals**
 
-Even though rank correlation among number of authors and SJR value is not high ($\rho$ = `r rho1`), @Fig shows that mean and median SJR value increase consistently until 56-60 authors bin, then fluctuate for larger groups.
+Even though rank correlation among number of authors and SJR value is not high ($\rho$ = `r rho1`), @fig-des-journal shows that mean and median SJR value increase consistently until 56-60 authors bin, then fluctuate for larger groups.
+
+
+```{r}
+#| label: fig-des-journal
+#| fig-cap: "Team size and journals’ prestige"
+#| warning: false
+#| message: false
+#| echo: false
+#| fig-align: center
+
+dat_sjr |>
+  group_by(author_group_ten) |>
+  ggplot(aes(x = author_group_ten, y = SJR)) +
+  geom_boxplot(outliers = FALSE, fill = "#A4BED5FF") +
+  stat_summary(
+    fun = mean, geom = "point", color = "#800000FF", size = 2
+  ) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x = "Author groups", y= "SJR")
+
+```
 
 **Papers authored by larger teams are less risky in terms of prestigue and impact**
 
-Across the 70th, 80th, and 90th percentiles, papers from smaller teams consistently receive fewer citations than of larger teams, showcasing the higher risks of low gain in smaller teams. This trend only changes for 99th and 99.99th percentile showcasing that receiving more citation and impact only happens in few cases (see @fig)
+Across the 70th, 80th, and 90th percentiles, papers from smaller teams consistently receive fewer citations than of larger teams, showcasing the higher risks of low gain in smaller teams. This trend only changes for 99th and 99.99th percentile showcasing that receiving more citation and impact only happens in few cases (see @fig-percentile)
+
+```{r}
+#| label: fig-percentile
+#| fig-cap: "Team size and citation counts"
+#| warning: false
+#| message: false
+#| echo: false
+#| fig-align: center
+#| layout-nrow: 2
+
+dat|>group_by(author_group_ten)|> summarise(value= quantile(citation_2y, c(.7, .8, .90, .99, .9999)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99, .9999)))|>
+  ggplot(aes(x=author_group_ten, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  facet_wrap(~percentile, scales = "free_y", axes = "all_x")+
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x= "Author group", y= "Second-year citation")+
+  scale_color_manual(values = c("#205F4B", "#913914", "#585854", "#F0A430", "#768048"), guide = "none")
+
+
+
+dat_sjr|>group_by(author_group_ten)|> summarise(value= quantile(SJR, c(.7, .8, .90, .99, .9999)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99, .9999)))|>
+  ggplot(aes(x=author_group_ten, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  facet_wrap(~percentile, scales = "free_y", axes = "all_x")+
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x= "Author group", y= "SJR")+
+  scale_color_manual(values = c("#205F4B", "#913914", "#585854", "#F0A430", "#768048"), guide = "none")
+
+
+
+```
+
 
 **Big-team papers are consistently more successful compare to other publications of the same author**
 
 Pairwise comparisons of citation counts show that papers with more than 20 authors have higher mean citation ranks than smaller teams. Therefore, we use 20 authors as the cutoff for “big teams” (>=20) in this comparison. We also find that very small teams (1–5 authors) consistently differ from moderate teams (6–19 authors), and, conceptually, overlap among very small teams is less likely. As a result, we compare big teams (>=20) with very small teams (1–5). Robustness checks for other small team definitions are provided in the Supplementary Materials.
 
 the results shows 
+
+```{r}
+#| label: fig-single-author-perfo
+#| fig-cap: " Performance of small project papers compared to big project papers of the same author"
+#| warning: false
+#| message: false
+#| echo: false
+#| fig-align: center
+
+
+df_long <- bigauthor_performance_5 |>
+  select(citation_2y_median_small, citation_2y_median_big,
+         citation_median_small,   citation_median_big,
+         corr_citation_median_small, corr_citation_median_big) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = c("metric", "team"),
+    names_pattern = "(.+?)_(small|big)$",
+    values_to = "value"
+  ) |>
+  mutate(
+    team = factor(team, levels = c("small","big"),
+                  labels = c("Small projects","Big projects"))
+  )
+
+# Optional nicer facet labels
+metric_labs <- c(
+  citation_2y_median      = "2-year citations",
+  citation_median         = "Total citations",
+  corr_citation_median    = "Date-corrected citations"
+)
+
+ggplot(df_long, aes(x = team, y = value, fill = team)) +
+  geom_boxplot(outliers = FALSE) +
+  facet_wrap(~ metric, labeller = as_labeller(metric_labs), scales = "free_y") +
+  labs(x = NULL, y = NULL) +
+  theme_classic() +
+  theme(legend.position = "none")+
+  scale_fill_manual(values = c("#007E2F", "#BA6E1D"), guide = "none")
+
+
+
+  
+```
+
 
 **Qualitative checks**
 
