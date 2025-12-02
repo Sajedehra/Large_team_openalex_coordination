@@ -347,3 +347,50 @@ bigauthor_performance_sjr5 <- bigauthor_performance_sjr5 %>%
 saveRDS(bigauthor_performance_sjr2, "bigauthor_performance_sjr2.rds")
 ```
 
+
+
+
+```{r effect size}
+library(TOSTER)
+
+df_long <- bigauthor_performance_5 |>
+  select(citation_2y_median_small, citation_2y_median_big,
+         citation_median_small,   citation_median_big,
+         corr_citation_median_small, corr_citation_median_big) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = c("metric", "team"),
+    names_pattern = "(.+?)_(small|big)$",
+    values_to = "value"
+  ) |>
+  mutate(
+    team = factor(team, levels = c("small","big"),
+                  labels = c("Small projects","Big projects"))
+  )
+
+
+df_long2 <- bigauthor_performance_sjr5 |>
+  select(SJR_median_small, SJR_median_big) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = c("metric", "team"),
+    names_pattern = "(.+?)_(small|big)$",
+    values_to = "value"
+  ) |>
+  mutate(
+    team = factor(team, levels = c("small","big"),
+                  labels = c("Small projects","Big projects"))
+  )
+
+
+
+df_long|> filter(metric == "citation_2y_median")|>group_by(team)|> summarise(mean = mean(value),sd = sd(value) ,median = median(value))
+
+df_long_2y<-df_long|> filter(metric == "citation_2y_median")
+ses_calc(value ~ team,
+         data = df_long_2y,
+         paired = TRUE)
+
+
+```
+
