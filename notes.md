@@ -45,4 +45,12 @@ Since yesterday, I itterated over the codes and decided on some arbitury criteri
 - if a study worked on some mental disorders and had added an aditional criteria (e.g., both diagnosed dipression and having suicide background) were coded as specific population.
 - if they were interview studies and there was an indication that it was possible to be done online, I did not code for multi-center. But I did count it for quantitative online surveys because I assumed they had to translate [unless they were in one country].
 
-Nov 28: I realised I left some papers without codes, as there was no access to their abstract (n=4). I remove them and coded 4 other papers.
+Nov 28: 
+
+I realised I left some papers without codes, as there was no access to their abstract (n=4). I remove them and coded 4 other papers.
+
+Dec 8:
+
+Last week at our meeting (on Dec 5th) we decided to rearrange the coding of the qualitative that matches the division of interdependency in our previous paper.
+
+If a papers is using specific tool (e.g., FMRI or intensive studies like gemone studies) or specific population, it will be classified as financial + logistic.
