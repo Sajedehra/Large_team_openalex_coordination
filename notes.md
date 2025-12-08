@@ -54,3 +54,5 @@ Dec 8:
 Last week at our meeting (on Dec 5th) we decided to rearrange the coding of the qualitative that matches the division of interdependency in our previous paper.
 
 If a papers is using specific tool (e.g., FMRI or intensive studies like gemone studies) or specific population, it will be classified as financial + logistic.
+
+all multi-centers have logistic component and count as financial if they have big sample sizes. All longitudinal and cohorts also have a temporal component.
