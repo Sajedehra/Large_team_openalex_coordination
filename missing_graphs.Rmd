@@ -54,6 +54,27 @@ ggplot(aes(x = as.integer(pubyear), y = remiss_ref), data= missing_ref)+
 
 ```
 
+```{r}
+p1 <- dat_sjr |>
+  mutate(source = "dat_sjr") |>
+  select(SJR, source)
+
+p2 <- SJR |>
+  filter(!is.na(SJR), SJR != "") |>
+  mutate(SJR = gsub(",", ".", SJR),
+         SJR = as.numeric(SJR),
+         source = "SJR_full") |>
+  select(SJR, source)
+
+combined <- bind_rows(p1, p2)
+
+ggplot(combined, aes(x = SJR, fill = source)) +
+  geom_density(alpha = 0.4) +
+  xlim(c(0, 25)) +
+  theme_classic()
+```
+
+
 
 
 

@@ -6,9 +6,6 @@ library(data.table)
 library(dplyr)
 library(readxl)
 library(stringr)
-library(rcrossref)
-library(openalexR)
-library(tictoc)
 library(psych)
 library(ggplot2)
 
@@ -60,6 +57,13 @@ n_english<- nrow(dat)
 
 # removing unrelated work
 
+#check<- sample_n(dat, 200, replace = FALSE)
+#check2<- sample_n(dat_d, 200, replace = FALSE)
+#check3<- sample_n(dat, 200, replace = FALSE)
+#check4<- sample_n(dat, 200, replace = FALSE)
+#keywordcheck<- rbind(check, check2, check3, check4)
+saveRDS(keywordcheck, "keywordcheck.rds")
+
 dat <- dat |>
   filter(!str_detect(
     str_trim(title),
@@ -88,12 +92,7 @@ pattern <- paste(irrelevant_title_keywords, collapse = "|")
 dat <- dat |>
   filter(!str_detect(title, regex(pattern, ignore_case = TRUE))) # 85252 cases until here (NAs are also removed) {with added correction one day later, 868 cases are added}
 
-#check<- sample_n(dat, 200, replace = FALSE)
-#check2<- sample_n(dat_d, 200, replace = FALSE)
-#check3<- sample_n(dat, 200, replace = FALSE)
-#check4<- sample_n(dat, 200, replace = FALSE)
-#keywordcheck<- rbind(check, check2, check3, check4)
-saveRDS(keywordcheck, "keywordcheck.rds")
+
 
 irrelevant_journal_keywords<- c("History", "software", "Eos", "Acoustics", "Surgery", "Tourism", "chemistry", "Robotics", "Physical",
                                 "Entrepreneurial Business", "ACM SIGCSE Bulletin", "computer science", "Environmental", "Pharmacology",
@@ -234,7 +233,7 @@ new_keyword<- c("correction", "Book Notes", "Day-by Day", "Respiratory", "Cover-
                 "Arthritis", "Cardiovascular", "genomic epidemiology", "Stem Cell", "atrophy", "debris disk", "bioinformatics",
                 "Antibodies", "aortic", "Telepresence", "narcolepsy", "Traumatic Brain Injury", "Hypoferremia", "Stroke", "oncology",
                 "Galaxy", "Metabolit", "harmonization", "versatility", "ivory", "Ecology", "motor disorder", "Cardiac pacing", "Edible Insects",
-                "entomology", "gas gauge", "endangered species", "hepatitis", "Sydenham Chorea", "Pollinator", "dialysis", "Biomarkers"
+                "entomology", "gas gauge", "endangered species", "hepatitis", "Sydenham Chorea", "Pollinator", "dialysis", "Biomarkers", "acousto-mechanical"
                 )
 
 case_sensitive<- c( "HIV","COPD", "serum", "BMI", "IPCC")
@@ -263,7 +262,13 @@ https://openalex.org/W2285173204
 https://openalex.org/W4220867049
 https://openalex.org/W3159009895
 https://openalex.org/W2325257031
-https://openalex.org/W2795224003"
+https://openalex.org/W2795224003
+https://openalex.org/W3205560381
+https://openalex.org/W2274190439
+https://openalex.org/W2943251031
+https://openalex.org/W4388728636
+https://openalex.org/W2985950284
+https://openalex.org/W2591445343"
 
 ids_vec <- strsplit(ids, "\n")[[1]]
 

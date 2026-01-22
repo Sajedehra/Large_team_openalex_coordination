@@ -40,7 +40,16 @@ I found that there are some characters that missed my regex cleaning with keywor
 
 Nov 27:
 
+<<<<<<< HEAD
 Since yesterday, I iterated over the codes and decided on some arbitrary criteria:
 - studies with above 1000 participants are big data collection (for quantitative studies). If they used the word nationally represented, without any mention of the final number also categorised as this. For qualitative studies, I set the threshold at 100 interviewees. 
 - if a study worked on some mental disorders and had added an additional criteria (e.g., both diagnosed depression and having suicide background) were coded as specific population.
 - if they were interview studies and there was an indication that it was possible to be done online, I did not code for multi-center. But I did count it for quantitative online surveys because I assumed they had to translate.
+=======
+Since yesterday, I itterated over the codes and decided on some arbitury criteria:
+- studies with above 1000 participants are big data collection (for quantitative studies). If they used the word nationally represented, withought any mention of the final number also categorised as this. For qualitative studies, I set the threashhold at 100 interviewees. 
+- if a study worked on some mental disorders and had added an aditional criteria (e.g., both diagnosed dipression and having suicide background) were coded as specific population.
+- if they were interview studies and there was an indication that it was possible to be done online, I did not code for multi-center. But I did count it for quantitative online surveys because I assumed they had to translate [unless they were in one country].
+
+Nov 28: I realised I left some papers without codes, as there was no access to their abstract (n=4). I remove them and coded 4 other papers.
+>>>>>>> a76e636ef273b0f78139eff8cc8aa80e2e7356b4
