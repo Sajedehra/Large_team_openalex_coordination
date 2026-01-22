@@ -62,3 +62,6 @@ Dec 12:
 
 Today I realised one of the abstracts was wrong: https://openalex.org/W2991079055
 
+Jan 16:
+
+We decided to go over the papers without clear interdependencies and check if they have CREDIT statement.
