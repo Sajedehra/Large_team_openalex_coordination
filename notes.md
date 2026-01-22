@@ -51,5 +51,23 @@ Since yesterday, I itterated over the codes and decided on some arbitury criteri
 - if a study worked on some mental disorders and had added an aditional criteria (e.g., both diagnosed dipression and having suicide background) were coded as specific population.
 - if they were interview studies and there was an indication that it was possible to be done online, I did not code for multi-center. But I did count it for quantitative online surveys because I assumed they had to translate [unless they were in one country].
 
+<<<<<<< HEAD
 Nov 28: I realised I left some papers without codes, as there was no access to their abstract (n=4). I remove them and coded 4 other papers.
 >>>>>>> a76e636ef273b0f78139eff8cc8aa80e2e7356b4
+=======
+Nov 28: 
+
+I realised I left some papers without codes, as there was no access to their abstract (n=4). I remove them and coded 4 other papers.
+
+Dec 8:
+
+Last week at our meeting (on Dec 5th) we decided to rearrange the coding of the qualitative that matches the division of interdependency in our previous paper.
+
+If a papers is using specific tool (e.g., FMRI or intensive studies like gemone studies) or specific population, it will be classified as financial + logistic.
+
+all multi-centers have logistic component and count as financial if they have big sample sizes. All longitudinal, cohorts, and eligible RCTs (with multiple time-point data collection) also have a temporal component. if RCT also involves delivering a treatment or therapy they are epistemic as well. the remaining RCTS are coded as logistic.
+
+Dec 12:
+
+Today I realised one of the abstracts was wrong: https://openalex.org/W2991079055
+>>>>>>> fd21c8fece5aef8f976cfb203c5b456a016f19c1
