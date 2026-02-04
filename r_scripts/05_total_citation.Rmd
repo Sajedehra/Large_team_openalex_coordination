@@ -1,0 +1,230 @@
+---
+title: "Total citation"
+---
+
+```{r libraries}
+library(dplyr)
+library(ggplot2)
+library(psych)
+library(stats)
+library(tidyr)
+library(here)
+```
+
+```{r}
+dat<- readRDS(here("data","consolidate_data_openalex.rds"))
+```
+
+
+```{r}
+# big teams as a phenomenon
+
+ggplot(aes(x = pubdate, colour = n_author), data = dat) +
+  geom_histogram()+
+  theme_minimal()
+
+```
+
+```{r}
+# citation across time
+
+ggplot(aes(x = pubdate, y = citation), data = dat) +
+  geom_point()+
+  theme_minimal()
+
+```
+
+# Correlation
+
+```{r}
+#visual relationship between number of authors and citation
+
+ggplot(aes(x = n_author, y = citation), data = dat) +
+  geom_point()+
+  theme_minimal()
+
+
+```
+
+
+```{r}
+test_corr<-cor.test(dat$n_author, dat$citation, method = "spearman", use = "complete.obs")
+test_corr
+```
+
+
+# Citation
+
+
+```{r}
+counts_five <- dat |> 
+  group_by(author_group_five) |> 
+  summarise(count = n(), .groups = "drop")
+
+dat |>
+  ggplot(aes(x = author_group_five, y = citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(fun = mean, geom = "point", color = "red", size = 2) +
+  geom_text(
+    data = counts_five,
+    aes(x = author_group_five, y = 402, label = count), 
+    inherit.aes = FALSE,
+    size = 3,
+    angle = 90
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  coord_cartesian(ylim = c(0, 410))
+```
+
+```{r}
+counts_ten <- dat |> 
+  group_by(author_group_ten) |> 
+  summarise(count = n(), .groups = "drop")
+
+dat |>
+  ggplot(aes(x = author_group_ten, y = citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(fun = mean, geom = "point", color = "red", size = 2) +
+  geom_text(
+    data = counts_ten,
+    aes(x = author_group_ten, y = 402, label = count), 
+    inherit.aes = FALSE,
+    size = 3,
+    angle = 90
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  coord_cartesian(ylim = c(0, 410))
+
+```
+
+```{r}
+counts_fif <- dat |> 
+  group_by(author_group_fifteen) |> 
+  summarise(count = n(), .groups = "drop")
+
+dat |>
+  ggplot(aes(x = author_group_fifteen, y = citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(fun = mean, geom = "point", color = "red", size = 2) +
+  geom_text(
+    data = counts_fif,
+    aes(x = author_group_fifteen, y = 402, label = count),
+    inherit.aes = FALSE,
+    size = 3,
+    angle = 90
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  coord_cartesian(ylim = c(0, 410))
+
+```
+
+# descriptive analysis
+
+```{r}
+des<- dat|>
+  group_by(author_group_five)|>
+  summarise(n=n(),
+            across(c(citation), list( mean = mean, sd = sd, median = median, IQR= IQR), .names = "{.col}_{.fn}"))
+
+
+print(des)
+
+```
+
+```{r}
+des_ten<- dat|>
+  group_by(author_group_ten)|>
+  summarise(n=n(),
+            across(c(citation), list( mean = mean, sd = sd, median = median, IQR= IQR), .names = "{.col}_{.fn}"))
+
+
+print(des_ten)
+
+```
+
+```{r}
+des_fif<- dat|>
+  group_by(author_group_fifteen)|>
+  summarise(n=n(),
+            across(c(citation), list( mean = mean, sd = sd, median = median, IQR= IQR), .names = "{.col}_{.fn}"))
+
+
+print(des_fif)
+
+```
+
+
+# percentile check
+
+```{r}
+dat|>mutate(author_bin = if_else(n_author<20, "<20 authors", "above 20 authors"))|> group_by(author_bin)|>summarise(value= quantile(citation, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))
+```
+
+
+```{r}
+mm_b<- dat|> filter(n_author>=20)|> summarise(mean = round(mean(citation), 2), median = median(citation))
+
+x <- mm_b$median
+
+com_perc<- dat |>
+  mutate(author_bin = if_else(n_author < 20, "<20 authors", ">=20 authors")) |>
+  group_by(author_bin) |>
+  summarise(
+    n = sum(!is.na(citation)),
+    percentile = 100 * mean(citation <= x, na.rm = TRUE)
+  )
+
+```
+
+
+```{r}
+
+dat|>filter(n_author<20)|>group_by(author_group_five)|> summarise(value= quantile(citation, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+  ggplot(aes(x=author_group_five, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x= "Author group", y= "Total citation")+
+  scale_color_manual(values = c("#2f4b7c", "#d45087", "#f95d6a", "#F0A430"))+
+  geom_hline(aes(yintercept = mm_b$median, linetype = "Median"), color = "darkred", size = 1 )+
+  geom_hline(aes(yintercept = mm_b$mean, linetype = "Mean"), color = "darkred", size = 1.2)+
+  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))
+
+```
+
+
+```{r}
+
+dat|>filter(n_author<20)|>group_by(author_group_ten)|> summarise(value= quantile(citation, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+  ggplot(aes(x=author_group_ten, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x= "Author group", y= "Total citation")+
+  scale_color_manual(values = c("#2f4b7c", "#d45087", "#f95d6a", "#F0A430"))+
+  geom_hline(aes(yintercept = mm_b$median, linetype = "Median"), color = "darkred", size = 1 )+
+  geom_hline(aes(yintercept = mm_b$mean, linetype = "Mean"), color = "darkred", size = 1.2)+
+  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))
+
+```
+
+
+```{r}
+
+dat|>filter(n_author<20)|>group_by(author_group_fifteen)|> summarise(value= quantile(citation, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+  ggplot(aes(x=author_group_fifteen, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x= "Author group", y= "Total citation")+
+  scale_color_manual(values = c("#2f4b7c", "#d45087", "#f95d6a", "#F0A430"))+
+  geom_hline(aes(yintercept = mm_b$median, linetype = "Median"), color = "darkred", size = 1 )+
+  geom_hline(aes(yintercept = mm_b$mean, linetype = "Mean"), color = "darkred", size = 1.2)+
+  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))
+
+```
+
+

@@ -1,0 +1,273 @@
+---
+title: "pair-wise comparison"
+---
+
+
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(stats)
+library(tidyr)
+library(here)
+library(FSA)
+```
+
+```{r}
+dat<- readRDS(here("data","first_cleaned_data_openalex.rds"))
+```
+
+
+# citation
+
+```{r}
+kruskat_five<- kruskal.test(citation ~ author_group_five, data = dat)
+kruskat_five
+
+```
+
+```{r}
+dunn_five<- dunnTest(citation ~ author_group_five, data = dat, method = "bh")
+dunn_five$res[order(-dunn_five$res$Z),]
+
+```
+
+```{r}
+
+dunn_summary_five <- dunn_five$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+
+group_scores_five <- dunn_summary_five |>
+  count(winner, name = "wins")
+
+
+group_losses_five <- dunn_summary_five |>
+  count(loser, name = "losses")
+
+
+ranking_five <- full_join(group_scores_five, group_losses_five, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         overall = wins - losses) |>
+  arrange(desc(overall))
+
+ranking_five
+```
+
+```{r}
+kruskat_ten<- kruskal.test(citation ~ author_group_ten, data = dat)
+kruskat_ten
+```
+
+```{r}
+dunn_ten<- dunnTest(citation ~ author_group_ten, data = dat, method = "bh")
+dunn_ten$res[order(-dunn_ten$res$Z),]
+```
+
+```{r}
+dunn_summary_ten <- dunn_ten$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+
+group_scores_ten <- dunn_summary_ten |>
+  count(winner, name = "wins")
+
+
+group_losses_ten <- dunn_summary_ten |>
+  count(loser, name = "losses")
+
+
+ranking_ten <- full_join(group_scores_ten, group_losses_ten, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         overall = wins - losses) |>
+  arrange(desc(overall))
+
+ranking_ten
+
+```
+
+```{r}
+kruskat_fif<- kruskal.test(citation ~ author_group_fifteen, data = dat)
+kruskat_fif
+```
+
+```{r}
+dunn_fif<- dunnTest(citation ~ author_group_fifteen, data = dat, method = "bh")
+
+dunn_fif$res[order(-dunn_fif$res$Z),]
+```
+
+```{r}
+dunn_summary_fif <- dunn_fif$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+
+group_scores_fif <- dunn_summary_fif |>
+  count(winner, name = "wins")
+
+
+group_losses_fif <- dunn_summary_fif |>
+  count(loser, name = "losses")
+
+
+ranking_fif <- full_join(group_scores_fif, group_losses_fif, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         overall = wins - losses) |>
+  arrange(desc(overall))
+
+ranking_fif
+
+```
+
+```{r}
+saveRDS(dunn_five, here("data","dunn_five.rds"))
+saveRDS(dunn_ten, here("data","dunn_ten.rds"))
+saveRDS(dunn_fif, here("data","dunn_fif.rds"))
+```
+
+
+# Second_year citation
+
+
+```{r}
+kruskat_five2<- kruskal.test(citation_2y ~ author_group_five, data = dat)
+kruskat_five2
+
+```
+
+```{r}
+dunn_five2<- dunnTest(citation_2y ~ author_group_five, data = dat, method = "bh")
+dunn_five2$res[order(-dunn_five2$res$Z),]
+
+```
+
+```{r}
+
+dunn_summary_five <- dunn_five2$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+
+group_scores_five <- dunn_summary_five |>
+  count(winner, name = "wins")
+
+
+group_losses_five <- dunn_summary_five |>
+  count(loser, name = "losses")
+
+
+ranking_five2 <- full_join(group_scores_five, group_losses_five, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         overall = wins - losses) |>
+  arrange(desc(overall))
+
+ranking_five2
+```
+
+```{r}
+kruskat_ten2<- kruskal.test(citation_2y ~ author_group_ten, data = dat)
+kruskat_ten2
+```
+
+```{r}
+dunn_ten2<- dunnTest(citation_2y ~ author_group_ten, data = dat, method = "bh")
+dunn_ten2$res[order(-dunn_ten2$res$Z),]
+```
+
+```{r}
+dunn_summary_ten <- dunn_ten2$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+
+group_scores_ten <- dunn_summary_ten |>
+  count(winner, name = "wins")
+
+
+group_losses_ten <- dunn_summary_ten |>
+  count(loser, name = "losses")
+
+
+ranking_ten2 <- full_join(group_scores_ten, group_losses_ten, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         overall = wins - losses) |>
+  arrange(desc(overall))
+
+ranking_ten2
+
+```
+
+```{r}
+kruskat_fif2<- kruskal.test(citation_2y ~ author_group_fifteen, data = dat)
+kruskat_fif2
+```
+
+```{r}
+dunn_fif2<- dunnTest(citation_2y ~ author_group_fifteen, data = dat, method = "bh")
+
+dunn_fif2$res[order(-dunn_fif2$res$Z),]
+```
+
+```{r}
+dunn_summary_fif <- dunn_fif2$res |>
+  filter(P.adj < 0.05) |>
+  mutate(winner = ifelse(Z > 0, sub(" - .*", "", Comparison),
+                         sub(".* - ", "", Comparison)),
+         loser  = ifelse(Z > 0, sub(".* - ", "", Comparison),
+                         sub(" - .*", "", Comparison)))
+
+
+group_scores_fif <- dunn_summary_fif |>
+  count(winner, name = "wins")
+
+
+group_losses_fif <- dunn_summary_fif |>
+  count(loser, name = "losses")
+
+
+ranking_fif2 <- full_join(group_scores_fif, group_losses_fif, by = c("winner" = "loser")) |>
+  rename(group = winner) |>
+  mutate(wins = replace_na(wins, 0),
+         losses = replace_na(losses, 0),
+         overall = wins - losses) |>
+  arrange(desc(overall))
+
+ranking_fif2
+
+```
+
+```{r}
+saveRDS(dunn_five2, here("data","dunn_five2.rds"))
+saveRDS(dunn_ten2, here("data","dunn_ten2.rds"))
+saveRDS(dunn_fif2, here("data","dunn_fif2.rds"))
+```
+
+
+

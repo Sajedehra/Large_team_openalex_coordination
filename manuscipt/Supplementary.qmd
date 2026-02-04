@@ -58,7 +58,6 @@ library(tibble)
 library(forcats)
 library(eulerr)
 library(flextable)
-library(here)
 
 dat<- readRDS(here("data","consolidate_data_openalex.rds"))
 dat_sjr<- readRDS(here("data","consolidate_journal_data.rds"))
@@ -86,7 +85,7 @@ After retrieving data from the OpenAlex snapshot, duplicated records were remove
 
 Next, we removed the records outside of the time period January 1, 1975, and September 15, 2024. We only retained records classified as journal articles and written in English. To further ensure language consistency, we removed records with non-ASCII characters in their title.
 
-To calculate the number of authors per article, we counted unique OpenAlex author identifiers associated with each record. We also calculated a time-difference variable to later compute date-corrected citation counts. This variable was calculated as the number of days between the publication date and the date of downloading the snapshot (September 14, 2024), with same-day publications set to a minimum value of one day to avoid zero values.
+To calculate the number of authors per article, we counted unique OpenAlex author identifiers associated with each record. We also calculated a time-difference variable to later compute date-corrected citation counts. This variable was calculated as the number of days between the publication date and the data download date (September 14, 2024), with same-day publications set to a minimum value of one day to avoid zero values.
 
 To focus the dataset on psychology-related research, automated filtering steps were applied based on article titles, journal names, and ISSNs.
 
@@ -101,22 +100,32 @@ After removing obvious non-article content (i.e., acknowledgement, reviewer list
 
 : Keywords used for the first round {#tbl-key-1 style= "text-align: justify" } 
 
-When we manually read the abstacts for the qualitative section, we added the following keywords for article titles and journal names to remove remaining non-relevant content. Case-sensitive filters were applied for identified acronyms that were associated with non-psychology domains (i.e, HIV, COPD, serum, BMI, IPCC). A small number of records were also removed based on explicit OpenAlex identifiers identified during manual screening. We also identified one paper (i.e., https://openalex.org/W1995163329) with incorrect metadata.
+
+```{r}
+#| eval: false
+#| include: false
+
+tbl_1<- tibble("Section" = c("Title", "Journal name", "ISSN"),
+                   "Keywords" = list(c("Essay", "symposium", "table of content", "proceedings", "annual meeting", "Blockchain", "Bug", "Temporal Network", "Handbook", "Conference", "control system", "Poetry", "Dance", "update on", "Machine Learning", "NUCLEAR", "PHYSICS", "portfolio", "Solar Power", "Epilogue", "oppening", "Book Review", "COMMENTARY", "Reporting Guideline", "editorial", "nursing", "Publication Information","Sibling Designs", "airfoil", "Meeting and Workshops", "Correction to"), c("History", "software", "Eos", "Acoustics", "Surgery", "Tourism", "chemistry", "Robotics", "Physical","Entrepreneurial Business", "ACM SIGCSE Bulletin", "computer science", "Environmental", "Pharmacology","Metaphilosophy", "Signal Processing", "Electronic", "Nutrition", "Canadian Studies", "Style", "Fashion", "Entomology", "Ethnology", "Engineering", "Gas", "Critical Care", "Anthropolog", "art", "Energy Conversion", "Safety Progress", "Mathematic", "Machine Learning", "Revista eureka", "BMJ","IT services", "Deleted Journal", "Philosophy", "auto world", "National Academy of Sciences", "Choice Reviews Online","Hotline", "Economic", "Nursing", "Mobilities", "Conference", "Maska", "Utility Computing", "Green Computing", "theatre", "IEEE", "Pediatrics", "Information Technology", "Tissue", "Ergonomics", "Industry Applications", "Agrosearch", "Discourse", "Cybernetics", "Accounting" ,"Infection", "The Monist", "A I I E Transactions","Molecular", "Sports", "nonmunji", "Linguistica e filologia", "Music", "DergiPark", "Acta Medica", "Trade", "Synthesiology", "Aerospace", "musik", "Marketing", "Human Rights", "Dialysis", "Kairaranga", "Disaster", "Fuzzy", "Legal", "NUCLEAR", "Operations Research", "BMC", "English", "Literacy", "Information Science", "Trafficking","Planner", "Experimental Biology", "Airports", "NASSP", "Medical Ethics", "Complexity", "Medical Herald", "Social Work","Optical", "Movement Science", "soft Computing", "law Journal", "Fire", "Shock", "Vinnytsia", "Linguistica", "biochem", "Applied Probability", "Physics", "plant Science", "Parks", "Nephrology", "techtrends", "Dental", "Fuel", "criminology","Training", "Verbal", "Internal Medicine", "St Tikhons University Review", "Petroleum", "CORAK", "Teachers College", "Agricultur", "Lawyer", "Orthopt", "information systems", "Finance Review", "Air transport", "Orthopaedic", "Medicine & Biology","Obstetrics", "Intelligent Systems", "Transportation Research", "Urology", "dialectica", "JWST Proposal. Cycle 1", "Immunology"), c("1073-1911", "0022-0418", "1356-5028", "1440-7833", "0894-069X", "0013-7545", "1940-9052", "1063-5157", "0042-8469", "1327-9556", "1660-9336","0127-9696", "1470-5427") ))
 
 
-::: {#tbl-key-2 style="font-size: 9pt; text-align: justify"}
+flextable(tbl_1)|> bold(part = "header")
+```
+
+
+
+
+When we manually read the abstacts for the qualitative section, we added the following. keywords for article titles and journal names to remove remaining non-relevant content. Case-sensitive filters were applied for identified acronyms that were associated with non-psychology domains (i.e, HIV, COPD, serum, BMI, IPCC). A small number of records were also removed based on explicit OpenAlex identifiers identified during manual screening.
+
+
 
 | **Section** | **Keywords** | 
 |------:|:---------------------------------------------------:|  
 | Title | correction; Book Notes; Day-by Day; Respiratory; Cover-Chewing; daytime napping; immune protection; CSCL System; Poster Session; colonial legacy; Cardiopulmonary; blood disorders; DMD patients; Upper Limb; About the Contributors; acousto-mechanical; grid computing; ventilation; cyberinfrastructure; PRO-TECT; geospatial; interprofessional medication; Phenotypic; artery bypass; Madagascar; metabolomics; aesthetic surg; endometrial; tertiary care; deflagration; Temparature; Temperature; nano-material; Diffusion; Infection; transportation; tuberculosis; Photographic; Vitreoretinopathy; hybrid mixtures; Prophylactic; Abstracts; lightcurves; ape decline; fibrosis; AQUA; primate extinction; particle; ISOCAM; diabetes; Stopwatch; genetics gap; Blood Collection; muscular dystrophy; Symbolic universes; Decarboxylase; ERA Registry; molecular; Flow System; antioxidant; autopsy; Natural gas; OpenModelica; geological; Nanotube; ape extinction; Arthritis; Cardiovascular; genomic epidemiology; Stem Cell; atrophy; debris disk; bioinformatics; Antibodies; aortic; Telepresence; narcolepsy; Traumatic Brain Injury; Hypoferremia; Stroke; oncology; Galaxy; Metabolit; harmonization; versatility; ivory; Ecology; motor disorder; Cardiac pacing; Edible Insects; entomology; gas gauge; endangered species; hepatitis; Sydenham Chorea; Pollinator; dialysis; Biomarkers | 
 | Journal name | pac; oncology; APS | 
-| OpenAlex identifier | https://openalex.org/W4382936650; https://openalex.org/W4200564330; https://openalex.org/W4286762924; https://openalex.org/W3097713271; https://openalex.org/W1992360116; https://openalex.org/W4312679429; https://openalex.org/W3215287579; https://openalex.org/W3043317701; https://openalex.org/W1967120130; https://openalex.org/W3203418161; https://openalex.org/W4282915658; https://openalex.org/W4391495193; https://openalex.org/W2542228716; https://openalex.org/W3196418672; https://openalex.org/W2026532911; https://openalex.org/W4400112743; https://openalex.org/W1514933037; https://openalex.org/W2055798093; https://openalex.org/W2285173204; https://openalex.org/W4220867049; https://openalex.org/W3159009895; https://openalex.org/W2325257031; https://openalex.org/W2795224003; https://openalex.org/W3205560381; https://openalex.org/W2274190439; https://openalex.org/W2943251031; https://openalex.org/W4388728636; https://openalex.org/W2985950284; https://openalex.org/W2591445343; https://openalex.org/W1995163329 |
+| OpenAlex identifier | https://openalex.org/W4382936650; https://openalex.org/W4200564330; https://openalex.org/W4286762924; https://openalex.org/W3097713271; https://openalex.org/W1992360116; https://openalex.org/W4312679429; https://openalex.org/W3215287579; https://openalex.org/W3043317701; https://openalex.org/W1967120130; https://openalex.org/W3203418161; https://openalex.org/W4282915658; https://openalex.org/W4391495193; https://openalex.org/W2542228716; https://openalex.org/W3196418672; https://openalex.org/W2026532911; https://openalex.org/W4400112743; https://openalex.org/W1514933037; https://openalex.org/W2055798093; https://openalex.org/W2285173204; https://openalex.org/W4220867049; https://openalex.org/W3159009895; https://openalex.org/W2325257031; https://openalex.org/W2795224003; https://openalex.org/W3205560381; https://openalex.org/W2274190439; https://openalex.org/W2943251031; https://openalex.org/W4388728636; https://openalex.org/W2985950284; https://openalex.org/W2591445343 |
 
-:::
-
-: Keywords used for the second round 
-
-
+: Keywords used for the second round {#tbl-key-2 style= "text-align: justify"} 
 
 
 \newpage
@@ -137,7 +146,6 @@ We used Dunn test to compare whether the mean rank of any two groups are differe
 #| cache: true
 #| tbl-cap: Rank ordering groups of authors across different team size definition based on their performance in Dunn test of total citation
 #| layout-ncol: 2
-#| layout-nrow: 2
 #| disable-apaquarto-processing: true
 
 
@@ -213,9 +221,10 @@ ranking_fif <- full_join(group_scores_fif, group_losses_fif, by = c("winner" = "
   arrange(desc(overall))
 
 
-flextable(ranking_five) |>separate_header() |>fontsize(size = 7.5)|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
-flextable(ranking_ten) |>separate_header()|>fontsize(size = 7.5)|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
-flextable(ranking_fif) |>separate_header()|>fontsize(size = 7.5)|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
+
+flextable(ranking_ten) |>separate_header()|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
+flextable(ranking_five) |>separate_header()|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
+flextable(ranking_fif) |>separate_header()|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
 
 
 
@@ -232,7 +241,6 @@ flextable(ranking_fif) |>separate_header()|>fontsize(size = 7.5)|>align(align = 
 #| cache: true
 #| tbl-cap: Rank ordering groups of authors across different team size definition based on their performance in Dunn test of second-year citation
 #| layout-ncol: 2
-#| layout-nrow: 2
 #| disable-apaquarto-processing: true
 
 
@@ -308,9 +316,10 @@ ranking_fif <- full_join(group_scores_fif, group_losses_fif, by = c("winner" = "
   arrange(desc(overall))
 
 
-flextable(ranking_five) |>separate_header()|>fontsize(size = 7.5)|> align(align = "center", part = "all")|>autofit()|>bold(part = "header")
-flextable(ranking_ten) |>separate_header()|>fontsize(size = 7.5)|> align(align = "center", part = "all")|>autofit()|>bold(part = "header")
-flextable(ranking_fif) |>separate_header()|>fontsize(size = 7.5)|> align(align = "center", part = "all")|>autofit()|>bold(part = "header")
+
+flextable(ranking_ten) |>separate_header()|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
+flextable(ranking_five) |>separate_header()|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
+flextable(ranking_fif) |>separate_header()|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
 
 
 
@@ -1065,8 +1074,8 @@ unstand_ES2<- round(descriptive2$mean[2]-descriptive2$mean[1], digits = 2)
 
 ```
 
-Regardless of the definition for large teams (i.e., number of authors more than 15 and 25), larger teams papers are consistently authors’ more successful publications. When large teams are defined as having 15 or more authors, the median number of citations for large-team publications in their second year is, on average, `r unstand_ES_15` higher than for publications by smaller teams (five or fewer authors). This number for total citation and publication-date–corrected citation are `r unstand_ES_citation_15` and `r unstand_ES_corr_15` respectively. Similarly, the median SJR of large-team publication of researchers is, on average `r unstand_ES2_15` higher than their smaller group publications. For author group of $\ge 25$ of researchers, these differences are `r unstand_ES` for second-year citation, `r unstand_ES_citation` for total citation, `r unstand_ES_corr` for publication-date–corrected citation, and `r unstand_ES2` for the journal ranking. 
-
+Regardless of the definition for large teams (i.e., number of authors more than 15 and 25), larger teams papers are consistently authors’ more successful publications. For author group of $\ge$15 of researchers, median citation of large-team publication on average, are `r unstand_ES_15` higher on their second year compared to the smaller team publication. This number for total citation and publication-date–corrected citation are `r unstand_ES_citation_15` and `r unstand_ES_corr_15` respectively. Similarly, the median SJR of large-team publication of researchers is, on average `r unstand_ES2_15` higher than their smaller group publications. For author group of $\ge$25 of researchers, these differences are `r unstand_ES` for second-year citation, `r unstand_ES_citation` for total citation, `r unstand_ES_corr` for publication-date–corrected citation, and `r unstand_ES2` for the journal ranking. 
+{*note: ignore the 25 group citation ones, there is a problem with the grouping them, so I fix that at the weekend.*}
 
 ```{r}
 #| label: fig-single-author-perfo-15

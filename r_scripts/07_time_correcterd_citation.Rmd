@@ -1,0 +1,174 @@
+---
+title: "time corrected citation"
+---
+
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(psych)
+library(tidyr)
+library(here)
+```
+
+```{r}
+dat<- readRDS(here("data","consolidate_data_openalex.rds"))
+```
+
+
+
+
+```{r}
+test_corr<-cor.test(dat$n_author, dat$corr_citation, method = "spearman", use = "complete.obs")
+```
+
+
+```{r}
+dat |>
+  group_by(author_group_five) |>
+  ggplot(aes(x = author_group_five, y = corr_citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 0.2))
+
+```
+
+
+```{r}
+dat |>
+  group_by(author_group_ten) |>
+  ggplot(aes(x = author_group_ten, y = corr_citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 0.2))
+
+```
+
+
+```{r}
+dat |>
+  group_by(author_group_fifteen) |>
+  ggplot(aes(x = author_group_fifteen, y = corr_citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 0.2))
+
+```
+
+# descriptive statistics
+
+```{r}
+corrdes<- dat|>
+  group_by(author_group_five)|>
+  summarise(n=n(),
+            across(c(corr_citation), list( mean = ~mean(.x, na.rm = TRUE), sd = ~sd(.x, na.rm = TRUE), median = ~median(.x, na.rm = TRUE), IQR=  ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+corrdes
+
+```
+
+```{r}
+corrdes_ten<- dat|>
+  group_by(author_group_ten)|>
+  summarise(n=n(),
+            across(c(corr_citation), list( mean = mean, sd = sd, median = median, IQR=  ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+corrdes_ten
+
+```
+
+```{r}
+corrdes_fif<- dat|>
+  group_by(author_group_fifteen)|>
+  summarise(n=n(),
+            across(c(corr_citation), list( mean = mean, sd = sd, median = median, IQR=  ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+corrdes_fif
+
+```
+
+
+# percentile check
+
+```{r}
+dat|>mutate(author_bin = if_else(n_author<20, "<20 authors", "above 20 authors"))|> group_by(author_bin)|>summarise(value= quantile(corr_citation, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))
+```
+
+
+```{r}
+mm_b_cor<- dat|> filter(n_author>=20)|> summarise(mean = round(mean(corr_citation), 2), median = median(corr_citation))
+
+x <- mm_b_cor$median
+
+com_perc_cor<- dat |>
+  mutate(author_bin = if_else(n_author < 20, "<20 authors", ">=20 authors")) |>
+  group_by(author_bin) |>
+  summarise(
+    n = sum(!is.na(corr_citation)),
+    percentile = 100 * mean(corr_citation <= x, na.rm = TRUE)
+  )
+
+```
+
+
+```{r}
+
+dat|>filter(n_author<20)|>group_by(author_group_five)|> summarise(value= quantile(corr_citation, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+  ggplot(aes(x=author_group_five, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x= "Author group", y= "Time-corrected citation")+
+  scale_color_manual(values = c("#2f4b7c", "#d45087", "#f95d6a", "#F0A430"))+
+  geom_hline(aes(yintercept = mm_b$median, linetype = "Median"), color = "darkred", size = 1 )+
+  geom_hline(aes(yintercept = mm_b$mean, linetype = "Mean"), color = "darkred", size = 1.2)+
+  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))
+
+```
+
+```{r}
+
+dat|>filter(n_author<20)|>group_by(author_group_ten)|> summarise(value= quantile(corr_citation, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+  ggplot(aes(x=author_group_ten, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x= "Author group", y= "Time-corrected citation")+
+  scale_color_manual(values = c("#2f4b7c", "#d45087", "#f95d6a", "#F0A430"))+
+  geom_hline(aes(yintercept = mm_b$median, linetype = "Median"), color = "darkred", size = 1 )+
+  geom_hline(aes(yintercept = mm_b$mean, linetype = "Mean"), color = "darkred", size = 1.2)+
+  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))
+
+```
+
+```{r}
+
+dat|>filter(n_author<20)|>group_by(author_group_fifteen)|> summarise(value= quantile(corr_citation, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+  ggplot(aes(x=author_group_fifteen, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x= "Author group", y= "Time-corrected citation")+
+  scale_color_manual(values = c("#2f4b7c", "#d45087", "#f95d6a", "#F0A430"))+
+  geom_hline(aes(yintercept = mm_b$median, linetype = "Median"), color = "darkred", size = 1 )+
+  geom_hline(aes(yintercept = mm_b$mean, linetype = "Mean"), color = "darkred", size = 1.2)+
+  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))
+
+```
+
+
+

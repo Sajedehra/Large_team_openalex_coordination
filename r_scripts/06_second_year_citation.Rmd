@@ -1,0 +1,176 @@
+---
+title: "second_year citation"
+---
+
+
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(psych)
+library(tidyr)
+library(tibble)
+library(here)
+```
+
+
+```{r}
+dat<- readRDS(here("data","consolidate_data_openalex.rds"))
+```
+
+
+```{r}
+test_corr<-cor.test(dat$n_author, dat$citation_2y, method = "spearman", use = "complete.obs")
+```
+
+```{r}
+dat |>
+  group_by(author_group_five) |>
+  ggplot(aes(x = author_group_five, y = citation_2y)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 250))
+
+```
+
+```{r}
+dat |>
+  group_by(author_group_ten) |>
+  ggplot(aes(x = author_group_ten, y = citation_2y)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 250))
+
+```
+
+```{r}
+dat |>
+  group_by(author_group_fifteen) |>
+  ggplot(aes(x = author_group_fifteen, y = citation_2y)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue") +
+  stat_summary(
+    fun = mean, geom = "point", color = "red", size = 2
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  coord_cartesian(ylim = c(0, 250))
+
+```
+
+# descriptive statistics
+
+```{r}
+des2y<- dat |>
+  group_by(author_group_five)|>
+  summarise(n=n(),
+            across(c(citation_2y), list( mean = ~mean(.x, na.rm = TRUE), sd = ~sd(.x, na.rm = TRUE), median = ~median(.x, na.rm = TRUE), IQR=  ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+des2y
+
+```
+
+
+```{r}
+des2y_ten<- dat |>
+  group_by(author_group_ten)|>
+  summarise(n=n(),
+            across(c(citation_2y), list( mean = mean, sd = sd, median = median, IQR=  ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+des2y_ten
+
+```
+
+```{r}
+des2y_fif<- dat |>
+  group_by(author_group_fifteen)|>
+  summarise(n=n(),
+            across(c(citation_2y), list( mean = mean, sd = sd, median = median, IQR=  ~IQR(.x, na.rm = TRUE)), .names = "{.col}_{.fn}"))
+
+
+des2y_fif
+
+```
+
+
+
+# percentile check
+
+```{r}
+dat|>mutate(author_bin = if_else(n_author<20, "<20 authors", "above 20 authors"))|> group_by(author_bin)|>summarise(value= quantile(citation_2y, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))
+```
+
+```{r}
+mm_b<- dat|> filter(n_author>=20)|> summarise(mean = round(mean(citation_2y), 2), median = median(citation_2y))
+
+x <- mm_b$median
+
+com_perc<- dat |>
+  mutate(author_bin = if_else(n_author < 20, "<20 authors", ">=20 authors")) |>
+  group_by(author_bin) |>
+  summarise(
+    n = sum(!is.na(citation_2y)),
+    percentile = 100 * mean(citation_2y <= x, na.rm = TRUE)
+  )
+
+
+```
+
+
+
+```{r}
+
+dat|>filter(n_author<20)|>group_by(author_group_five)|> summarise(value= quantile(citation_2y, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+  ggplot(aes(x=author_group_five, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x= "Author group", y= "Second-year citation")+
+  scale_color_manual(values = c("#2f4b7c", "#d45087", "#f95d6a", "#F0A430"))+
+  geom_hline(aes(yintercept = mm_b$median, linetype = "Median"), color = "darkred", size = 1 )+
+  geom_hline(aes(yintercept = mm_b$mean, linetype = "Mean"), color = "darkred", size = 1.2)+
+  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))
+
+```
+
+
+```{r}
+
+dat|>filter(n_author<20)|>group_by(author_group_ten)|> summarise(value= quantile(citation_2y, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+  ggplot(aes(x=author_group_ten, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x= "Author group", y= "Second-year citation")+
+  scale_color_manual(values = c("#2f4b7c", "#d45087", "#f95d6a", "#F0A430"))+
+  geom_hline(aes(yintercept = mm_b$median, linetype = "Median"), color = "darkred", size = 1 )+
+  geom_hline(aes(yintercept = mm_b$mean, linetype = "Mean"), color = "darkred", size = 1.2)+
+  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))
+
+```
+
+
+```{r}
+
+dat|>filter(n_author<20)|>group_by(author_group_fifteen)|> summarise(value= quantile(citation_2y, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+  ggplot(aes(x=author_group_fifteen, y = value, color = percentile))+
+  geom_point(size= 2)+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  labs(x= "Author group", y= "Second-year citation")+
+  scale_color_manual(values = c("#2f4b7c", "#d45087", "#f95d6a", "#F0A430"))+
+  geom_hline(aes(yintercept = mm_b$median, linetype = "Median"), color = "darkred", size = 1 )+
+  geom_hline(aes(yintercept = mm_b$mean, linetype = "Mean"), color = "darkred", size = 1.2)+
+  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))
+
+```
+
+

@@ -4,3 +4,13 @@
 .Ruserdata
 author_performance.rds
 redundant_codes.R
+notes.md
+*.rds
+*.RDS
+
+.Supplementary_cache/
+.Supplementary_files/
+.Manuscript_files/
+.Manuscript_cache/
+.figures/
+.manual*qualitative/

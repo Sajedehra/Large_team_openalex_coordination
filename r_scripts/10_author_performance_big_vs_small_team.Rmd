@@ -1,0 +1,723 @@
+---
+title: "author performance in their small vs big publications"
+---
+
+```{r libraries}
+
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(purrr)
+library(rlang)
+library(stats)
+library(here)
+library(ggplot2)
+```
+
+```{r open_data}
+dat<- readRDS(here("data","consolidate_data_openalex.rds"))
+dat_sjr<- readRDS(here("data","consolidate_journal_data.rds"))
+```
+
+```{r functions}
+summarize_cols <- function(df, cols, suffix = "") {
+  if (is.null(df) || nrow(df) == 0) {
+    # return NA columns when a nested tibble is empty
+    nms <- as.vector(outer(cols, names(funs), paste, sep = "_"))
+    nms <- paste0(nms, suffix)
+    return(tibble::as_tibble(setNames(as.list(rep(NA_real_, length(nms))), nms)))
+  }
+  df |>
+    summarise(across(all_of(cols), funs, .names = "{.col}_{.fn}")) |>
+    rename_with(~ paste0(.x, suffix))
+}
+```
+
+
+
+# big team define as >= 20 - citation metrics
+
+
+```{r}
+
+big_authors <- dat |> filter(n_author>=20)|>
+  select(title, oa_id_author) |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  filter(oa_id_author != "") |>
+  rename(authors = oa_id_author)
+
+
+authors_long <- dat |>
+  filter(!is.na(oa_id_author), oa_id_author != "") |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  mutate(oa_id_author = str_remove_all(oa_id_author, '[\\[\\]"\\\']') |> str_trim())
+
+small_nested <- authors_long |>
+  filter(n_author < 20) |>
+  nest(small_project = -oa_id_author)   
+
+big_nested <- authors_long |>
+  filter(n_author >= 20) |>
+  nest(big_project = -oa_id_author)    
+
+# ensure big_authors IDs match cleaned IDs
+big_authors <- big_authors |>
+  mutate(authors = str_remove_all(authors, '[\\[\\]"\\\']') |> str_trim()) |>
+  distinct(authors)
+
+author_performance <- big_authors |>
+  rename(author_id = authors) |>
+  left_join(small_nested, by = c("author_id" = "oa_id_author")) |>
+  left_join(big_nested,   by = c("author_id" = "oa_id_author")) |>
+  mutate(
+    small_project = map(small_project, ~ .x %||% tibble()),
+    big_project   = map(big_project,   ~ .x %||% tibble())
+  )
+
+```
+
+
+```{r}
+# keeping only papers with 5 authors and lower in small teams - removing cases with only one small-team publication
+bigauthor_performance_5 <- author_performance |>
+  mutate(
+    small_project = map(
+      small_project,
+      ~ filter(.x, !is.na(n_author) & n_author <= 5)   
+    )
+  ) |>
+  filter(map_int(small_project, nrow) > 1) 
+
+
+cols <- c("citation", "citation_2y", "corr_citation")
+funs <- list(mean = ~mean(.x, na.rm = TRUE),
+             sd   = ~sd(.x,   na.rm = TRUE),
+             median = ~median(.x, na.rm = TRUE))
+
+
+bigauthor_performance_5 <- bigauthor_performance_5 %>%
+  mutate(
+    small_stats = map(small_project, ~ summarize_cols(.x, cols, "_small")),
+    big_stats   = map(big_project,   ~ summarize_cols(.x, cols, "_big"))
+  ) |>
+  unnest_wider(small_stats) |>
+  unnest_wider(big_stats)
+
+
+saveRDS(bigauthor_performance_5, "data/author_smallvsbig_performance_citation_metrics_20.rds")
+
+```
+
+
+```{r}
+#comparing small vs big statistically
+
+wilcox.test(bigauthor_performance_5$citation_median_big, bigauthor_performance_5$citation_median_small, alternative = "greater")
+
+wilcox.test(bigauthor_performance_5$citation_2y_median_big, bigauthor_performance_5$citation_2y_median_small, alternative = "greater")
+
+wilcox.test(bigauthor_performance_5$corr_citation_median_big, bigauthor_performance_5$corr_citation_median_small, alternative = "greater")
+
+```
+
+
+# big team define as >= 20 - Journal ranking
+
+```{r}
+
+big_authors <- dat_sjr |> filter(n_author>=20)|>
+  select(title, oa_id_author) |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  filter(oa_id_author != "") |>
+  rename(authors = oa_id_author)
+
+
+authors_long <- dat_sjr |>
+  filter(!is.na(oa_id_author), oa_id_author != "") |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  mutate(oa_id_author = str_remove_all(oa_id_author, '[\\[\\]"\\\']') |> str_trim())
+
+small_nested <- authors_long |>
+  filter(n_author < 20) |>
+  nest(small_project = -oa_id_author)   
+
+big_nested <- authors_long |>
+  filter(n_author >= 20) |>
+  nest(big_project = -oa_id_author)     
+
+# ensure big_authors IDs match cleaned IDs
+big_authors <- big_authors |>
+  mutate(authors = str_remove_all(authors, '[\\[\\]"\\\']') |> str_trim()) |>
+  distinct(authors)
+
+author_performance_SJR <- big_authors |>
+  rename(author_id = authors) |>
+  left_join(small_nested, by = c("author_id" = "oa_id_author")) |>
+  left_join(big_nested,   by = c("author_id" = "oa_id_author")) |>
+  mutate(
+    small_project = map(small_project, ~ .x %||% tibble()),
+    big_project   = map(big_project,   ~ .x %||% tibble())
+  )
+
+```
+
+
+```{r}
+# keeping only papers with 5 authors and lower in small teams - removing cases with only one small-team publication
+bigauthor_performance_sjr5 <- author_performance_SJR |>
+  filter(map_int(small_project, nrow) > 1)|>
+  mutate(
+    small_project = map(
+      small_project,
+      ~ filter(.x, !is.na(n_author) & n_author <= 5)   
+    )
+  ) |>
+  filter(map_int(small_project, nrow) > 1) 
+
+
+cols <- c("SJR")
+funs <- list(mean = ~mean(.x, na.rm = TRUE),
+             sd   = ~sd(.x,   na.rm = TRUE),
+             median = ~median(.x, na.rm = TRUE))
+
+
+bigauthor_performance_sjr5 <- bigauthor_performance_sjr5 %>%
+  mutate(
+    small_stats = map(small_project, ~ summarize_cols(.x, cols, "_small")),
+    big_stats   = map(big_project,   ~ summarize_cols(.x, cols, "_big"))
+  ) |>
+  unnest_wider(small_stats) |>
+  unnest_wider(big_stats)
+
+
+saveRDS(bigauthor_performance_sjr5, "data/author_smallvsbig_performance_journal_ranking_20.rds")
+
+```
+
+
+
+```{r}
+#comparing small vs big statistically
+
+wilcox.test(bigauthor_performance_sjr5$SJR_median_big, bigauthor_performance_sjr5$SJR_median_small, alternative = "greater")
+
+```
+
+
+# creating long version of data for visual comparison
+
+
+```{r}
+df_long <- bigauthor_performance_5 |>
+  select(citation_2y_median_small, citation_2y_median_big,
+         citation_median_small,   citation_median_big,
+         corr_citation_median_small, corr_citation_median_big) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = c("metric", "team"),
+    names_pattern = "(.+?)_(small|big)$",
+    values_to = "value"
+  ) |>
+  mutate(
+    team = factor(team, levels = c("small","big"),
+                  labels = c("Small projects","Big projects"))
+  )
+
+
+df_long2 <- bigauthor_performance_sjr5 |>
+  select(SJR_median_small, SJR_median_big) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = c("metric", "team"),
+    names_pattern = "(.+?)_(small|big)$",
+    values_to = "value"
+  ) |>
+  mutate(
+    team = factor(team, levels = c("small","big"),
+                  labels = c("Small projects","Big projects"))
+  )
+
+
+df_long_mix<- rbind(df_long, df_long2)
+
+
+metric_labs <- c(
+  citation_2y_median      = "2-year citations",
+  citation_median         = "Total citations",
+  corr_citation_median    = "Date-corrected citations",
+  SJR_median              = "SCImago Journal Rank"
+)
+
+ggplot(df_long_mix, aes(x = team, y = value, fill = team)) +
+  geom_boxplot(outliers = FALSE) +
+  facet_wrap(~ metric, labeller = as_labeller(metric_labs), scales = "free_y") +
+  labs(x = NULL, y = NULL) +
+  theme_classic() +
+  theme(axis.text.x=element_blank())+
+  scale_fill_manual(values = c("#007E2F", "#BA6E1D"))
+
+  
+```
+
+
+
+##############
+
+
+
+# big team define as >= 15 - citation metrics
+
+
+```{r}
+
+big_authors <- dat |> filter(n_author>=15)|>
+  select(title, oa_id_author) |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  filter(oa_id_author != "") |>
+  rename(authors = oa_id_author)
+
+
+authors_long <- dat |>
+  filter(!is.na(oa_id_author), oa_id_author != "") |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  mutate(oa_id_author = str_remove_all(oa_id_author, '[\\[\\]"\\\']') |> str_trim())
+
+small_nested <- authors_long |>
+  filter(n_author < 15) |>
+  nest(small_project = -oa_id_author)   
+
+big_nested <- authors_long |>
+  filter(n_author >= 15) |>
+  nest(big_project = -oa_id_author)    
+
+# ensure big_authors IDs match cleaned IDs
+big_authors <- big_authors |>
+  mutate(authors = str_remove_all(authors, '[\\[\\]"\\\']') |> str_trim()) |>
+  distinct(authors)
+
+author_performance <- big_authors |>
+  rename(author_id = authors) |>
+  left_join(small_nested, by = c("author_id" = "oa_id_author")) |>
+  left_join(big_nested,   by = c("author_id" = "oa_id_author")) |>
+  mutate(
+    small_project = map(small_project, ~ .x %||% tibble()),
+    big_project   = map(big_project,   ~ .x %||% tibble())
+  )
+
+```
+
+
+```{r}
+# keeping only papers with 5 authors and lower in small teams - removing cases with only one small-team publication
+bigauthor_performance_5 <- author_performance |>
+  filter(map_int(small_project, nrow) > 1)|>
+  mutate(
+    small_project = map(
+      small_project,
+      ~ filter(.x, !is.na(n_author) & n_author <= 5)   
+    )
+  ) |>
+  filter(map_int(small_project, nrow) > 1) 
+
+
+cols <- c("citation", "citation_2y", "corr_citation")
+funs <- list(mean = ~mean(.x, na.rm = TRUE),
+             sd   = ~sd(.x,   na.rm = TRUE),
+             median = ~median(.x, na.rm = TRUE))
+
+
+bigauthor_performance_5 <- bigauthor_performance_5 %>%
+  mutate(
+    small_stats = map(small_project, ~ summarize_cols(.x, cols, "_small")),
+    big_stats   = map(big_project,   ~ summarize_cols(.x, cols, "_big"))
+  ) |>
+  unnest_wider(small_stats) |>
+  unnest_wider(big_stats)
+
+
+saveRDS(bigauthor_performance_5, here("data","author_smallvsbig_performance_citation_metrics_15.rds"))
+
+```
+
+
+```{r}
+#comparing small vs big statistically
+
+wilcox.test(bigauthor_performance_5$citation_median_big, bigauthor_performance_5$citation_median_small, alternative = "greater")
+
+wilcox.test(bigauthor_performance_5$citation_2y_median_big, bigauthor_performance_5$citation_2y_median_small, alternative = "greater")
+
+wilcox.test(bigauthor_performance_5$corr_citation_median_big, bigauthor_performance_5$corr_citation_median_small, alternative = "greater")
+
+```
+
+
+# big team define as >= 15 - Journal ranking
+
+```{r}
+
+big_authors <- dat_sjr |> filter(n_author>=15)|>
+  select(title, oa_id_author) |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  filter(oa_id_author != "") |>
+  rename(authors = oa_id_author)
+
+
+authors_long <- dat_sjr |>
+  filter(!is.na(oa_id_author), oa_id_author != "") |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  mutate(oa_id_author = str_remove_all(oa_id_author, '[\\[\\]"\\\']') |> str_trim())
+
+small_nested <- authors_long |>
+  filter(n_author < 15) |>
+  nest(small_project = -oa_id_author)   
+
+big_nested <- authors_long |>
+  filter(n_author >= 15) |>
+  nest(big_project = -oa_id_author)     
+
+# ensure big_authors IDs match cleaned IDs
+big_authors <- big_authors |>
+  mutate(authors = str_remove_all(authors, '[\\[\\]"\\\']') |> str_trim()) |>
+  distinct(authors)
+
+author_performance_SJR <- big_authors |>
+  rename(author_id = authors) |>
+  left_join(small_nested, by = c("author_id" = "oa_id_author")) |>
+  left_join(big_nested,   by = c("author_id" = "oa_id_author")) |>
+  mutate(
+    small_project = map(small_project, ~ .x %||% tibble()),
+    big_project   = map(big_project,   ~ .x %||% tibble())
+  )
+
+```
+
+
+```{r}
+# keeping only papers with 5 authors and lower in small teams - removing cases with only one small-team publication
+bigauthor_performance_sjr5 <- author_performance_SJR |>
+  filter(map_int(small_project, nrow) > 1)|>
+  mutate(
+    small_project = map(
+      small_project,
+      ~ filter(.x, !is.na(n_author) & n_author <= 5)   
+    )
+  ) |>
+  filter(map_int(small_project, nrow) > 1) 
+
+
+cols <- c("SJR")
+funs <- list(mean = ~mean(.x, na.rm = TRUE),
+             sd   = ~sd(.x,   na.rm = TRUE),
+             median = ~median(.x, na.rm = TRUE))
+
+
+bigauthor_performance_sjr5 <- bigauthor_performance_sjr5 %>%
+  mutate(
+    small_stats = map(small_project, ~ summarize_cols(.x, cols, "_small")),
+    big_stats   = map(big_project,   ~ summarize_cols(.x, cols, "_big"))
+  ) |>
+  unnest_wider(small_stats) |>
+  unnest_wider(big_stats)
+
+
+saveRDS(bigauthor_performance_sjr5, here("data","author_smallvsbig_performance_journal_ranking_15.rds"))
+
+```
+
+
+
+```{r}
+#comparing small vs big statistically
+
+wilcox.test(bigauthor_performance_sjr5$SJR_median_big, bigauthor_performance_sjr5$SJR_median_small, alternative = "greater")
+
+```
+
+
+# creating long version of data for visual comparison
+
+
+```{r}
+df_long <- bigauthor_performance_5 |>
+  select(citation_2y_median_small, citation_2y_median_big,
+         citation_median_small,   citation_median_big,
+         corr_citation_median_small, corr_citation_median_big) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = c("metric", "team"),
+    names_pattern = "(.+?)_(small|big)$",
+    values_to = "value"
+  ) |>
+  mutate(
+    team = factor(team, levels = c("small","big"),
+                  labels = c("Small projects","Big projects"))
+  )
+
+
+df_long2 <- bigauthor_performance_sjr5 |>
+  select(SJR_median_small, SJR_median_big) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = c("metric", "team"),
+    names_pattern = "(.+?)_(small|big)$",
+    values_to = "value"
+  ) |>
+  mutate(
+    team = factor(team, levels = c("small","big"),
+                  labels = c("Small projects","Big projects"))
+  )
+
+
+df_long_mix<- rbind(df_long, df_long2)
+
+
+metric_labs <- c(
+  citation_2y_median      = "2-year citations",
+  citation_median         = "Total citations",
+  corr_citation_median    = "Date-corrected citations",
+  SJR_median              = "SCImago Journal Rank"
+)
+
+ggplot(df_long_mix, aes(x = team, y = value, fill = team)) +
+  geom_boxplot(outliers = FALSE) +
+  facet_wrap(~ metric, labeller = as_labeller(metric_labs), scales = "free_y") +
+  labs(x = NULL, y = NULL) +
+  theme_classic() +
+  theme(axis.text.x=element_blank())+
+  scale_fill_manual(values = c("#007E2F", "#BA6E1D"))
+
+  
+```
+
+
+##########
+
+
+# big team define as >= 25 - citation metrics
+
+
+```{r}
+
+big_authors <- dat |> filter(n_author>=25)|>
+  select(title, oa_id_author) |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  filter(oa_id_author != "") |>
+  rename(authors = oa_id_author)
+
+
+authors_long <- dat |>
+  filter(!is.na(oa_id_author), oa_id_author != "") |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  mutate(oa_id_author = str_remove_all(oa_id_author, '[\\[\\]"\\\']') |> str_trim())
+
+small_nested <- authors_long |>
+  filter(n_author < 25) |>
+  nest(small_project = -oa_id_author)   
+
+big_nested <- authors_long |>
+  filter(n_author >= 25) |>
+  nest(big_project = -oa_id_author)    
+
+# ensure big_authors IDs match cleaned IDs
+big_authors <- big_authors |>
+  mutate(authors = str_remove_all(authors, '[\\[\\]"\\\']') |> str_trim()) |>
+  distinct(authors)
+
+author_performance <- big_authors |>
+  rename(author_id = authors) |>
+  left_join(small_nested, by = c("author_id" = "oa_id_author")) |>
+  left_join(big_nested,   by = c("author_id" = "oa_id_author")) |>
+  mutate(
+    small_project = map(small_project, ~ .x %||% tibble()),
+    big_project   = map(big_project,   ~ .x %||% tibble())
+  )
+
+```
+
+
+```{r}
+# keeping only papers with 5 authors and lower in small teams - removing cases with only one small-team publication
+bigauthor_performance_5 <- author_performance |>
+  filter(map_int(small_project, nrow) > 1)|>
+  mutate(
+    small_project = map(
+      small_project,
+      ~ filter(.x, !is.na(n_author) & n_author <= 5)   
+    )
+  ) |>
+  filter(map_int(small_project, nrow) > 1) 
+
+
+cols <- c("citation", "citation_2y", "corr_citation")
+funs <- list(mean = ~mean(.x, na.rm = TRUE),
+             sd   = ~sd(.x,   na.rm = TRUE),
+             median = ~median(.x, na.rm = TRUE))
+
+
+bigauthor_performance_5 <- bigauthor_performance_5 %>%
+  mutate(
+    small_stats = map(small_project, ~ summarize_cols(.x, cols, "_small")),
+    big_stats   = map(big_project,   ~ summarize_cols(.x, cols, "_big"))
+  ) |>
+  unnest_wider(small_stats) |>
+  unnest_wider(big_stats)
+
+
+saveRDS(bigauthor_performance_5, here("data","author_smallvsbig_performance_citation_metrics_25.rds"))
+
+```
+
+
+```{r}
+#comparing small vs big statistically
+
+wilcox.test(bigauthor_performance_5$citation_median_big, bigauthor_performance_5$citation_median_small, alternative = "greater")
+
+wilcox.test(bigauthor_performance_5$citation_2y_median_big, bigauthor_performance_5$citation_2y_median_small, alternative = "greater")
+
+wilcox.test(bigauthor_performance_5$corr_citation_median_big, bigauthor_performance_5$corr_citation_median_small, alternative = "greater")
+
+```
+
+
+# big team define as >= 25 - Journal ranking
+
+```{r}
+
+big_authors <- dat_sjr |> filter(n_author>=25)|>
+  select(title, oa_id_author) |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  filter(oa_id_author != "") |>
+  rename(authors = oa_id_author)
+
+
+authors_long <- dat_sjr |>
+  filter(!is.na(oa_id_author), oa_id_author != "") |>
+  separate_rows(oa_id_author, sep = ",\\s*") |>
+  mutate(oa_id_author = str_remove_all(oa_id_author, '[\\[\\]"\\\']') |> str_trim())
+
+small_nested <- authors_long |>
+  filter(n_author < 25) |>
+  nest(small_project = -oa_id_author)   
+
+big_nested <- authors_long |>
+  filter(n_author >= 25) |>
+  nest(big_project = -oa_id_author)     
+
+# ensure big_authors IDs match cleaned IDs
+big_authors <- big_authors |>
+  mutate(authors = str_remove_all(authors, '[\\[\\]"\\\']') |> str_trim()) |>
+  distinct(authors)
+
+author_performance_SJR <- big_authors |>
+  rename(author_id = authors) |>
+  left_join(small_nested, by = c("author_id" = "oa_id_author")) |>
+  left_join(big_nested,   by = c("author_id" = "oa_id_author")) |>
+  mutate(
+    small_project = map(small_project, ~ .x %||% tibble()),
+    big_project   = map(big_project,   ~ .x %||% tibble())
+  )
+
+```
+
+
+```{r}
+# keeping only papers with 5 authors and lower in small teams - removing cases with only one small-team publication
+bigauthor_performance_sjr5 <- author_performance_SJR |>
+  filter(map_int(small_project, nrow) > 1)|>
+  mutate(
+    small_project = map(
+      small_project,
+      ~ filter(.x, !is.na(n_author) & n_author <= 5)   
+    )
+  ) |>
+  filter(map_int(small_project, nrow) > 1) 
+
+
+cols <- c("SJR")
+funs <- list(mean = ~mean(.x, na.rm = TRUE),
+             sd   = ~sd(.x,   na.rm = TRUE),
+             median = ~median(.x, na.rm = TRUE))
+
+
+bigauthor_performance_sjr5 <- bigauthor_performance_sjr5 %>%
+  mutate(
+    small_stats = map(small_project, ~ summarize_cols(.x, cols, "_small")),
+    big_stats   = map(big_project,   ~ summarize_cols(.x, cols, "_big"))
+  ) |>
+  unnest_wider(small_stats) |>
+  unnest_wider(big_stats)
+
+
+saveRDS(bigauthor_performance_sjr5, here("data","author_smallvsbig_performance_journal_ranking_25.rds"))
+
+```
+
+
+
+```{r}
+#comparing small vs big statistically
+
+wilcox.test(bigauthor_performance_sjr5$SJR_median_big, bigauthor_performance_sjr5$SJR_median_small, alternative = "greater")
+
+```
+
+
+# creating long version of data for visual comparison
+
+
+```{r}
+df_long <- bigauthor_performance_5 |>
+  select(citation_2y_median_small, citation_2y_median_big,
+         citation_median_small,   citation_median_big,
+         corr_citation_median_small, corr_citation_median_big) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = c("metric", "team"),
+    names_pattern = "(.+?)_(small|big)$",
+    values_to = "value"
+  ) |>
+  mutate(
+    team = factor(team, levels = c("small","big"),
+                  labels = c("Small projects","Big projects"))
+  )
+
+
+df_long2 <- bigauthor_performance_sjr5 |>
+  select(SJR_median_small, SJR_median_big) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = c("metric", "team"),
+    names_pattern = "(.+?)_(small|big)$",
+    values_to = "value"
+  ) |>
+  mutate(
+    team = factor(team, levels = c("small","big"),
+                  labels = c("Small projects","Big projects"))
+  )
+
+
+df_long_mix<- rbind(df_long, df_long2)
+
+
+metric_labs <- c(
+  citation_2y_median      = "2-year citations",
+  citation_median         = "Total citations",
+  corr_citation_median    = "Date-corrected citations",
+  SJR_median              = "SCImago Journal Rank"
+)
+
+ggplot(df_long_mix, aes(x = team, y = value, fill = team)) +
+  geom_boxplot(outliers = FALSE) +
+  facet_wrap(~ metric, labeller = as_labeller(metric_labs), scales = "free_y") +
+  labs(x = NULL, y = NULL) +
+  theme_classic() +
+  theme(axis.text.x=element_blank())+
+  scale_fill_manual(values = c("#007E2F", "#BA6E1D"))
+
+  
+```
+
+
+
