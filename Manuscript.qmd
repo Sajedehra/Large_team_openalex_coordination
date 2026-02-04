@@ -47,10 +47,10 @@ author:
 bibliography: references.bib  
 author-note:
   disclosure:
-    data-sharing: "Codes and materials to recreate this manuscript is available at https://github.com/Sajedehra/Large_team_openalex_coordination. Data used in this study is available at XXX"
+    data-sharing: "Codes and materials to recreate this manuscript is available at https://github.com/Sajedehra/Large_team_openalex_coordination. Data used in this study is available at https://doi.org/10.4121/28e374ba-3e71-4e42-ae83-00714f5d5161."
     gratitude: "The authors would like to thank Chris Snijders for his feedback during this project."
-    conflict-of-interest: The authors have no conflicts of interest to disclose.
-    financial-support: This work was funded with the support of the Ammodo Science Award 2023 for Social Sciences.
+    conflict-of-interest: "The authors have no conflicts of interest to disclose."
+    financial-support: "This work was funded with the support of the Ammodo Science Award 2023 for Social Sciences."
 floatsintext: true
 word-count: true
 numbered-lines: true
@@ -104,16 +104,16 @@ Research questions are becoming increasingly complex [@klug_understanding_2016; 
 
 A growing literature documents the rise of large-team science papers and evaluates whether the collective investments necessary for coordinated studies are justified. Many studies have found that papers by large teams receive more citations, which can be interpreted as a proxy for greater scientific impact [@wuchty_increasing_2007; @wu_large_2019; @uzzi_atypical_2013; @coles_prevalence_2024; @hsiehchen_multinational_2015; @bikard_exploring_2015; @porter_research_2012]. Ever since the successful completion of the Reproducibility Project: Psychology [@open_science_collaboration_estimating_2015], where 270 authors collaboratively performed 100 replication studies, Psychology has increasingly embraced large-team collaboration [@coles_prevalence_2024]. As has been observed in other disciplines, on average, large-team science papers in psychology receive more citations and attention by news outlets and social media than papers with fewer authors [@coles_prevalence_2024; @coles_rise_2025]. Large-team research efforts are especially common in clinical psychology, where collaborations focus on the treatment and prevention of psychological disorders [@coles_rise_2025].
 
-In the current manuscript, we build on previous work by investigating the nature of large-team research projects in psychology. We begin with a qualitative analysis of the reasons why psychologists start large-team research projects, focusing on the types of interdependencies results in large-team collaboration. In a conceptual analysis of coordination in science [@rasti_framework_2025] we identified four categories of interdependencies that increase the need for coordination. Interdependencies can be logistic (i.e., answering the research question requires more work than a single person can complete in a given time), financial (i.e., answering the research question requires more money than any single research has access too), temporal (i.e., answering the research question requires part of the work to be done by specific researchers, before other parts of the work are completed by other researchers), and epistemic (i.e., answering the research question requires specialists to combine their expertise). This qualitative analysis allows us to clarify when and why researchers perceive coordination to be necessary in psychological science. We then complement this qualitative work with a quantitative analysis of the scientific impact of large-team research, to better understand the potential benefits of engaging in collaborative research projects for psychological scientists. We examine 1) the ranking of journals where large-team research efforts are published, 2) their immediate impact on the field, as indicated by how quickly large-team research efforts accumulate citations, 3) whether papers based on large-team research efforts have relatively more scientific impact than other papers published by the same researcher, and 4) how likely it is that a research project with a small team achieves the same (or more) scientific impact compared to large-team projects. Together, these analyses provide descriptive evidence on the potential benefits and limits of engaging in large-team research in psychology.
+In the current manuscript, we build on previous work by investigating the nature of large-team research projects in psychology. We begin with a qualitative analysis of the reasons why psychologists start large-team research projects, focusing on the types of interdependencies results in large-team collaboration. In a conceptual analysis of coordination in science, @rasti_framework_2025 identified four categories of interdependencies that increase the need for coordination. Interdependencies can be logistic (i.e., answering the research question requires more work than a single person can complete in a given time), financial (i.e., answering the research question requires more money than any single research has access too), temporal (i.e., answering the research question requires part of the work to be done by specific researchers, before other parts of the work are completed by other researchers), and epistemic (i.e., answering the research question requires specialists to combine their expertise). This qualitative analysis allows us to clarify when and why researchers perceive coordination to be necessary in psychological science. We then complement this qualitative work with a quantitative analysis of the scientific impact of large-team research, to better understand the potential benefits of engaging in collaborative research projects for psychological scientists. We examine 1) the ranking of journals where large-team research efforts are published, 2) their immediate impact on the field, as indicated by how quickly large-team research efforts accumulate citations, 3) whether papers based on large-team research efforts have relatively more scientific impact than other papers published by the same researcher, and 4) how likely it is that a research project with a small team achieves the same (or more) scientific impact compared to large-team projects. Together, these analyses provide descriptive evidence on the potential benefits and limits of engaging in large-team research in psychology.
 
 ## Method
 
-Our analysis used more than 1.5 million psychology papers from the OpenAlex data snapshot from October 17, 2024 [@priem_openalex_2022]. OpenAlex is an open-access scholarly metadata resource launched in 2022 as a successor to Microsoft Academic Graph. All data processing and analyses were performed in R (version 4.4.1 and higher, @r_core_team_r_2025).
+Our analysis used more than 1.5 million psychology papers from the OpenAlex data snapshot from October 17, 2024 [@priem_openalex_2022]. OpenAlex is an open-access scholarly metadata resource launched in 2022 as a successor to Microsoft Academic Graph. All data processing and analyses were performed in R [version 4.4.1 and higher, @r_core_team_r_2025].
 
 OpenAlex stores all scholarly documents including journal articles within the *works* entity. We iterated over the snapshot’s works section and retrieved all entries in which Psychology or Decision Science appeared as the primary or secondary field. Field assignment in OpenAlex is largely automated: a large language model (LLM) infers topics from the title, abstract, journal name, and citation network, and then maps topics to the most likely field using an algorithm developed by CWTS [@openalex_2024_whitepaper]. The OpenAlex team acknowledged that automated assignment can produce errors. Accordingly, we included Decision Science as well, as our initial checks showed that this field in OpenAlex contains many psychology-related articles, including Reproducibility Project: Psychology which is a seminal large-team science project in psychology [@open_science_collaboration_estimating_2015]. We then filtered out non-psychology items by title and journal-name keywords (e.g., “symposium”, “table of content”, “Synthesiology”, and “Aerospace”). During the qualitative analysis we identified more keywords to add to the list of records to remove, and reran all analyses (full list of keywords can be found in the Supplementary Materials). @fig-preprocessing shows the preprocessing and data cleaning steps.
 
 
-![Data Cleaning Process](../figures/flowchart.png){#fig-preprocessing}
+![Data Cleaning Process](figures/manuscript/flowchart.png){#fig-preprocessing}
 
 ### Metrics of Interest
 
@@ -131,9 +131,9 @@ We randomly selected 1000 papers with 20 or more authors for our qualitative ana
 
 Our goal was to code 500 valid records, while at the same time using the qualitative checks to identify papers that do not meet the inclusion criteria of this study. We analyzed 647 papers in total, and distilled keywords in the 146 papers that did not meet our inclusion criteria for the second round of data cleaning (see @fig-preprocessing). For one paper, we found that the metadata were incorrect: a paper with eight authors had been coded as having 45 authors. We manually removed this record, but there may be additional cases like this in the large-team group that were missed due to unnoticed metadata errors.
 
-Subsequently, all abstracts were coded by the first author in 3 iterations. If the aim of the paper or the type of interdependency was not clear from the abstract, the method and result section of the paper was investigated manually. We also investigated the CREDIT statement, if available, of the papers with no clear reason for the large team investigation to gain insight on the role of each author in the paper. It should be noted that, due to the nature of intellectual outputs, many papers were difficult to classify because they could involve multiple components. Decisions about whether a component was sufficiently strong were therefore based on subjective judgment. Each coding round involved changes for reasons such as revisions to what counted as a component (e.g., how large a sample needed to be considered large-scale data collection), misunderstandings between why authors worked together versus whether the collaboration required many authors, and mistakes in identifying interdependencies.
+Subsequently, all abstracts were coded by the first author in 3 iterations. If the aim of the paper or the type of interdependency was not clear from the abstract, the method and result section of the paper was investigated manually. We also investigated the CREDIT statement, if available, of the papers with no clear reason for the large team investigation to gain insight on the role of each author in the paper. It should be noted that, due to the many overlaps in the aims and the interdependencies within the papers, many papers were difficult to classify because they could involve multiple components. Decisions about whether a component was sufficiently strong were therefore based on subjective judgment. Each coding round involved changes for reasons such as revisions to what counted as a component (e.g., how large a sample needed to be considered large-scale data collection), misunderstandings between why authors worked together versus whether the collaboration required many authors, and mistakes in identifying interdependencies.
 
-Ambiguous cases (n = 8), the initial set of papers coded as having no clear interdependencies (n = 53), and random quality checks (n = 50) were reviewed and discussed with the last author. Coding was performed in MAXQDA 2022 software (version 22.1.0, @verbi_software_maxqda_2021).
+Ambiguous cases (n = 8), the initial set of papers coded as having no clear interdependencies (n = 53), and random quality checks (n = 54) were reviewed and discussed with the last author. Coding was performed in MAXQDA 2022 software [version 22.1.0, @verbi_software_maxqda_2021].
 
 
 
@@ -158,7 +158,7 @@ maxqda_long <- maxqda_sets |>
 
 ```
 
-@fig-qualitative visualizes the interdependencies that are present in the large-team science papers in our sample. Most papers pointed toward more than one interdependency in their abstracts. Logistic and financial interdependencies were most prevalent, and could be identified in `r maxqda_long$total_cases[5]` and `r maxqda_long$total_cases[4]` papers, respectively. These categories included papers with hard-to-reach populations (e.g., primates, participants with comorbid conditions), expensive measurement methods (e.g., fMRI), large-scale data collections, data collection from multiple places, and labour intensive studies.
+@fig-qualitative visualizes the interdependencies and other categories that were present in the large-team science papers in our sample. Most papers pointed toward more than one interdependency in their abstracts. Logistic and financial interdependencies were most prevalent, and could be identified in `r maxqda_long$total_cases[5]` and `r maxqda_long$total_cases[4]` papers, respectively. These categories included papers with hard-to-reach populations (e.g., primates, participants with comorbid conditions), expensive measurement methods (e.g., fMRI), large-scale data collections, data collection from multiple places, and labour intensive studies (e.g., large meta-analyses).
 
 Temporal (`r maxqda_long$total_cases[3]` papers) and epistemic (`r maxqda_long$total_cases[2]` papers) interdependencies were next in terms of frequency. These categories included papers with multiple data collection points, randomized controlled trials, longitudinal studies, papers with clear specialised roles (e.g., experts for diagnosis, translation, or handling specific type of data), consensus and roadmap papers, and papers offering conceptual work.
 
@@ -168,7 +168,7 @@ In a few but striking cases, we could not identify any reason why articles inclu
 
 Lastly, we identified papers that were part of a larger coordinated study or consortium, but where the specific paper focused on secondary analysis. Four of these papers included a CREDIT statement, which made it clear that some authors were responsible for the paper itself, while others were included in the author list because the data came from the larger consortium. These papers clearly show the tension between individual vs group contributions, and how smaller projects exist within a larger entity.
 
-The complexity of categorizing papers in this section highlight the need for greater attention to what qualifies as authorship. Fields should work together to standardize authorship criteria. CRediT statements can help transparently communicate the interdependencies involved in a project and the roles each author plays in the paper. However, such discussions are beyond the scope of the current manuscript and will require further investigation.
+The complexity of categorizing papers in this section highlight the need for greater attention to what qualifies as authorship. Fields should work together to standardize authorship criteria. CREDIT statements can help transparently communicate the interdependencies involved in a project and the roles each author plays in the paper. However, such discussions are beyond the scope of the current manuscript and will require further investigation.
 
 ```{r}
 #| label: fig-qualitative
@@ -181,24 +181,24 @@ The complexity of categorizing papers in this section highlight the need for gre
 
 
 eul_graph<- euler(c(
-  "Symbolic" = 39,
+  "Symbolic" = 38,
   "No clear\nreason" = 12,
-  "Part of a larger\nconsortium" = 7,
-  "Financial" = 37,
-  "Logistic" = 63,
-  "Epistemic" = 48,
-  "Temporal" = 30,
+  "Part of a larger\nconsortium" = 8,
+  "Financial" = 34,
+  "Logistic" = 64,
+  "Epistemic" = 49,
+  "Temporal" = 28,
   "Financial&Epistemic" = 4,
   "Financial&Temporal" = 25,
   "Financial&Logistic" = 116,
-  "Logistic&Temporal" = 17,
-  "Temporal&Epistemic" = 30,
+  "Logistic&Temporal" = 16,
+  "Temporal&Epistemic" = 29,
   "Temporal&Epistemic&Logistic" = 10,
-  "Financial&Logistic&Epistemic" = 8,
+  "Financial&Logistic&Epistemic" = 9,
   "Financial&Temporal&Epistemic" = 6,
-  "Financial&Logistic&Temporal" = 28,
-  "Financial&Logistic&Temporal&Epistemic" = 7,
-  "Logistic&Epistemic" = 13
+  "Financial&Logistic&Temporal" = 32,
+  "Financial&Logistic&Temporal&Epistemic" = 8,
+  "Logistic&Epistemic" = 12
 ))
 
 cols <- c(
@@ -283,9 +283,20 @@ p_txt4 <- apa_p(sjr_corr$p.value)
 
 ci_full<- ci_full|>mutate_at(vars(-variable), funs(round(., 3)))
 
+
+des<- dat|>
+  group_by(author_group_ten)|>
+  summarise(n=n(),
+            across(c(citation, citation_2y), list( mean = ~round(mean(.x), 2), sd = ~round(sd(.x), 2), median = ~round(median(.x), 2))))
+
+
+des2<- dat_sjr|>
+  group_by(author_group_ten)|>
+  summarise(n=n(),
+            across(c(SJR), list( mean = ~round(mean(.x), 2), sd = ~round(sd(.x), 2), median = ~round(median(.x), 2))))
 ```
 
-Overall, bigger teams receive more citations ($\rho$ = `r rho1`, CI = \[`r ci_full$ci.l[1]`, `r ci_full$ci.u[1]`\]) [^3]. This relationship is slightly stronger for the second-year citation count ($\rho$ = `r rho2`, CI = \[`r ci_full$ci.l[2]`, `r ci_full$ci.u[2]`\]) and slightly stronger for publication-date–corrected citation count ($\rho$ = `r rho3`, CI = \[`r ci_full$ci.l[3]`, `r ci_full$ci.u[3]`\]). Analyzing papers in bins of 10 authors, the median and mean of the second-year citation counts increased fairly consistently up to the 45-author group followed by many fluctuations (see @fig-des-citation). Papers with 4 authors receives 29.77 in mean an 5 in median lower citation in the first two year than papers with 36-45 authors. This suggests that projects with larger author groups have a relatively large immediate impact, as would be expected when researchers in a field come together to study a topic they all believe should be addressed at this time.
+Overall, bigger teams receive more citations ($\rho$ = `r rho1`, CI = \[`r ci_full$ci.l[1]`, `r ci_full$ci.u[1]`\]) [^3]. This relationship is slightly stronger for the second-year citation count ($\rho$ = `r rho2`, CI = \[`r ci_full$ci.l[2]`, `r ci_full$ci.u[2]`\]) and slightly stronger for publication-date–corrected citation count ($\rho$ = `r rho3`, CI = \[`r ci_full$ci.l[3]`, `r ci_full$ci.u[3]`\]). Analyzing papers in bins of 10 authors, the median and mean of the second-year citation counts increased fairly consistently up to the 45-author group followed by many fluctuations (see @fig-des-citation). Papers with 4 authors receives `r des$citation_2y_mean[9] - des$citation_2y_mean[4]` in mean an `r des$citation_2y_median[9] - des$citation_2y_median[4]` in median lower citation in the first two year than papers with 36-45 authors. This suggests that projects with larger author groups have a relatively large immediate impact, as would be expected when researchers in a field come together to study a topic they all believe should be addressed at this time.
 
 [^3]: Due to the large sample size (N = `r n_used` for citation measures and N = `r n_used_sjr` for journal ranking), all reported statistics are significant, with `r p_txt4`.
 
@@ -312,7 +323,7 @@ dat |>
 
 ### Larger teams are published in higher-ranked journals
 
-The rank correlation between number of authors and SJR value ($\rho$ = `r rho4`, CI = \[`r ci_full$ci.l[4]`, `r ci_full$ci.u[4]`\]) is smaller than the correlation with citation count reported above. Where papers with 4 authors appear in journals with a mean of 1.23 rank score, papers with 26-35 authors appear in journals rank mean of 2.5. @fig-des-journal shows that mean and median SJR value increase consistently until the 46-55 authors bin, then fluctuate for larger groups.
+The rank correlation between number of authors and SJR value ($\rho$ = `r rho4`, CI = \[`r ci_full$ci.l[4]`, `r ci_full$ci.u[4]`\]) is smaller than the correlation with citation count reported above. Here papers with 4 authors appear in journals with `r des2$SJR_mean[9] - des2$SJR_mean[4]` lower rank score compared to papers with 36-45 authors, and this value for the meadian rank score is `r des2$SJR_median[9] - des2$SJR_median[4]`. @fig-des-journal shows that mean and median SJR value increase consistently until the 46-55 authors bin, then fluctuate for larger groups.
 
 ```{r}
 #| label: fig-des-journal
@@ -510,7 +521,29 @@ A limitation of our analysis is that our results focused on citation counts and 
 
 Similar to Coles [-@coles_rise_2025], we found that scaling up the project (e.g., collecting more data, collecting data from multiple sites) is one of the primary reasons that researchers opt for large-team collaborations. Logistic and financial interdependencies are highly tangible and relatively straightforward to plan for. However, our results also suggest that many researchers engage in large-team work for reasons that are unrelated to the interdependencies that arise when attempting to answer complex research questions. It is possible that researchers add co-authors to benefit from the higher visibility and citation advantages associated with collaborative outputs. In addition, gift authorship has been shown to be prevalent in science [@gulen_more_2020]. Large collaborations may also be motivated by a desire to draw attention to a particular issue or to signal the importance of a problem, effectively “proving a point” through the collective weight of a large author team. The high visibility of large-team publications may therefore be used, whether opportunistically or altruistically, to amplify specific messages or research agendas. The use of CREDIT statements might make the contributions of authors more transparent, and fields might develop policies about the acceptability of submitting papers with a large number of authors to signal support for a position.
 
-At least as long as recognition and rewards procedures remain individual-focused, improving coordination in science requires that the benefits of collaborative work are tangible for individual researchers. Our findings suggest that large-team collaborations are less risky than individual work in terms of impact and visibility, often generate more immediate influence, and are on average cited more and published in higher-ranked journals than small team papers by the same author. Moreover, this study highlights that large-team collaborations primarily arise from the interdependencies and demands of complex research questions, but also from broader social and strategic factors. While coordinated research should ideally be driven by intrinsic scientific goals, making these additional motivators explicit may help increase the adoption of coordinated large-team research in scientific disciplines such as psychology. We need coordination to answer complex questions, and our results show that coordination is potentially rewarding in the current state of academia. The remaining challenge is to ensure that incentives are adequately supporting the uptake of coordination.
+As long as recognition and reward procedures remain focused on individuals, improving coordination in science requires that the benefits of collaborative work be tangible for individual researchers. Our findings suggest that large-team collaborations are less risky than individual work in terms of impact and visibility, often generate more immediate influence, and are on average cited more and published in higher-ranked journals than small team papers by the same author. Moreover, this study highlights that large-team collaborations primarily arise from the interdependencies and demands of complex research questions, but also from broader social and strategic factors. While coordinated research should ideally be driven by intrinsic scientific goals, making these additional motivators explicit may help increase the adoption of coordinated large-team research in scientific disciplines such as psychology. We need coordination to answer complex questions, and our results show that coordination is potentially rewarding in the current state of academia. The remaining challenge is to ensure that incentives are adequately supporting the uptake of coordination.
+
+
+### Acknowledgement
+
+The authors would like to thank Chris Snijders for his feedback during this project.
+
+### Funding
+
+This work was funded with the support of the Ammodo Science Award 2023 for Social Sciences.
+
+### Use of Artificial Intelligence Declaration
+
+The authors declare that the generative AI was only used to increase the efficiency of the code and enhancing the readability of some sentences and in this manuscript
+
+###  Data, code, and materials
+
+Codes and materials to recreate this manuscript is available at https://github.com/Sajedehra/Large_team_openalex_coordination. Data used in this study is available at https://doi.org/10.4121/28e374ba-3e71-4e42-ae83-00714f5d5161.
+
+### Competing Interest Declaration
+
+The authors declare no conflict of interest.
+
 
 \newpage
 

@@ -101,10 +101,11 @@ After removing obvious non-article content (i.e., acknowledgement, reviewer list
 
 : Keywords used for the first round {#tbl-key-1 style= "text-align: justify" } 
 
+
 When we manually read the abstacts for the qualitative section, we added the following keywords for article titles and journal names to remove remaining non-relevant content. Case-sensitive filters were applied for identified acronyms that were associated with non-psychology domains (i.e, HIV, COPD, serum, BMI, IPCC). A small number of records were also removed based on explicit OpenAlex identifiers identified during manual screening. We also identified one paper (i.e., https://openalex.org/W1995163329) with incorrect metadata.
 
 
-::: {#tbl-key-2 style="font-size: 9pt; text-align: justify"}
+
 
 | **Section** | **Keywords** | 
 |------:|:---------------------------------------------------:|  
@@ -112,9 +113,7 @@ When we manually read the abstacts for the qualitative section, we added the fol
 | Journal name | pac; oncology; APS | 
 | OpenAlex identifier | https://openalex.org/W4382936650; https://openalex.org/W4200564330; https://openalex.org/W4286762924; https://openalex.org/W3097713271; https://openalex.org/W1992360116; https://openalex.org/W4312679429; https://openalex.org/W3215287579; https://openalex.org/W3043317701; https://openalex.org/W1967120130; https://openalex.org/W3203418161; https://openalex.org/W4282915658; https://openalex.org/W4391495193; https://openalex.org/W2542228716; https://openalex.org/W3196418672; https://openalex.org/W2026532911; https://openalex.org/W4400112743; https://openalex.org/W1514933037; https://openalex.org/W2055798093; https://openalex.org/W2285173204; https://openalex.org/W4220867049; https://openalex.org/W3159009895; https://openalex.org/W2325257031; https://openalex.org/W2795224003; https://openalex.org/W3205560381; https://openalex.org/W2274190439; https://openalex.org/W2943251031; https://openalex.org/W4388728636; https://openalex.org/W2985950284; https://openalex.org/W2591445343; https://openalex.org/W1995163329 |
 
-:::
-
-: Keywords used for the second round 
+: Keywords used for the second round {#tbl-key-2 style= "text-align: justify"} 
 
 
 
@@ -213,7 +212,7 @@ ranking_fif <- full_join(group_scores_fif, group_losses_fif, by = c("winner" = "
   arrange(desc(overall))
 
 
-flextable(ranking_five) |>separate_header() |>fontsize(size = 7.5)|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
+flextable(ranking_five) |>separate_header()|> fontsize(size = 7.5)|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
 flextable(ranking_ten) |>separate_header()|>fontsize(size = 7.5)|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
 flextable(ranking_fif) |>separate_header()|>fontsize(size = 7.5)|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
 
@@ -308,9 +307,9 @@ ranking_fif <- full_join(group_scores_fif, group_losses_fif, by = c("winner" = "
   arrange(desc(overall))
 
 
-flextable(ranking_five) |>separate_header()|>fontsize(size = 7.5)|> align(align = "center", part = "all")|>autofit()|>bold(part = "header")
-flextable(ranking_ten) |>separate_header()|>fontsize(size = 7.5)|> align(align = "center", part = "all")|>autofit()|>bold(part = "header")
-flextable(ranking_fif) |>separate_header()|>fontsize(size = 7.5)|> align(align = "center", part = "all")|>autofit()|>bold(part = "header")
+flextable(ranking_five) |>separate_header()|>fontsize(size = 7.5)|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
+flextable(ranking_ten) |>separate_header()|>fontsize(size = 7.5)|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
+flextable(ranking_fif) |>separate_header()|>fontsize(size = 7.5)|>align(align = "center", part = "all")|>autofit()|>bold(part = "header")
 
 
 
