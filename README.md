@@ -19,7 +19,7 @@ Large_team_openalex_coordination/
 │   ├── Steps to take for creating raw data.md      # Instructions to prepare the snapshot for the analysis
 │   └── note.md                                     # Open Lab notebook
 |
-├── data/                                                          # this is an empty folder but you can download the content of this forlder (besides the snapshot) at XX
+├── data/                                                          # this is an empty folder but you can download the content of this forlder (besides the snapshot) at the link above
 │   ├── works/                                                     # Where snapshot should go
 │   ├── qualitative_materials/                                     # folder containing the random sample of papers picked for qualitative analysis
 │       ├── quali_papers_with_abstract.csv   
