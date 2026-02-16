@@ -1,7 +1,7 @@
 # Repository
 
-This repository is dedicated to the paper title "The Benefits and Motivations Behind Large-Team Coordination in Psychology". It contains materials and codes used in this study, as well as the
-manuscript (not peer-reviewed) and the supplementary materials. You can freely access the data to reproduce the manuscript at *link*.
+This repository is dedicated to the paper title "The Benefits of and Motivations Behind Large-Team Coordination in Psychology". It contains materials and codes used in this study, as well as the
+manuscript (not peer-reviewed) and the supplementary materials. You can freely access the data to reproduce the manuscript at [https://data.4tu.nl/private_datasets/NNOaIjnIG5G1i-kvzILsxBXJD-NV4dqs3UlQw6CfjUc](https://data.4tu.nl/private_datasets/NNOaIjnIG5G1i-kvzILsxBXJD-NV4dqs3UlQw6CfjUc).
 
 
 # Project structure
