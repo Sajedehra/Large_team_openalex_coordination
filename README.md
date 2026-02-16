@@ -7,13 +7,13 @@ manuscript (not peer-reviewed) and the supplementary materials. You can freely a
 # Project structure
 ```
 Large_team_openalex_coordination/
-├── manuscript/ 
-│   ├── Manuscript.pdf       # Preprint of the study
-│   ├── Manuscript.qmd       # Quarto document to fully reproduce the manuscript
-|   ├── Supplementary.pdf    # Supplementary materials
-|   ├── Supplementary.qmd    # Quarto document to fully reproduce the supplementary materials
-|   ├── apa.csl              # csl file for making references apa style
-|   └── references.bib       # Bib file contianing the references used in the manuscript
+|
+├── Manuscript.pdf       # Preprint of the study
+├── Manuscript.qmd       # Quarto document to fully reproduce the manuscript
+├── Supplementary.pdf    # Supplementary materials
+├── Supplementary.qmd    # Quarto document to fully reproduce the supplementary materials
+├── apa.csl              # csl file for making references apa style
+├── references.bib       # Bib file contianing the references used in the manuscript
 |
 ├── additional information/ 
 │   ├── Steps to take for creating raw data.md      # Instructions to prepare the snapshot for the analysis
