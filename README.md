@@ -58,11 +58,8 @@ Large_team_openalex_coordination/
 |   ├── 10_author_performance_big_vs_small_team.Rmd                # Creating datasets for comparing performance of large-team vs small-team publications of authors across all group sizes and measures
 │   └── 11_qualitative_cleaning.R                                  # Cleaning the qualitative coding and generating Figure 2
 |
-├── qualitative analysis/️
-│   └── openalex-interdep.mqda   # MAXQDA project for qualitative coding
-|
-└── figures/ 
-    ├── manuscript             # Contains all the figures in the manuscript in png and svg format
-    └── supplementary          # Contains all the figures in the supplementary in png and svg format
+└──  qualitative analysis/️
+   └── openalex-interdep.mqda   # MAXQDA project for qualitative coding
+
 
 ```
