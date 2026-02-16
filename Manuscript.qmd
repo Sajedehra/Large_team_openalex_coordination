@@ -65,7 +65,7 @@ format:
 editor_options: 
   chunk_output_type: console
 abstract: "To increase coordination in science in areas where this would be beneficial for knowledge generation, collaborative work needs to offer clear benefits to individual researchers. This study investigates the motivations for initiating large-team papers and the potential benefits of these projects in psychology. By qualitatively analyzing 500 papers, we find that large-team collaborations are most often instigated to deal with the practical challenges  inherent to complex research questions, but can also be motivated by broader social and or strategic factors. The results from quantitatively analyzing 1,699,513 papers published between 1975 and 2024 indicate that large-team collaborations are more likely to be cited and to appear in higher-ranked journals. Furthermore, their immediate impact on the field, as measured by citation counts within the first 2 years after publication, is on average higher than individually-authored papers. This suggests that contributing to collaborative projects in psychology will likely increase the number of high-rank journal publications to the resume of researchers. Overall, our findings indicate that large-team collaborations can be rewarding for individual researchers both by enabling early scientific impact and by contributing to stronger publication records."
-keywords: [Coordination, Interdependecy, Large-team Collaborations, Team science]
+keywords: [Coordination, Interdependency, Large-team Collaborations, Team science]
 ---
 
 ```{r}
