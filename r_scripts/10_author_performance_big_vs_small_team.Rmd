@@ -112,11 +112,11 @@ saveRDS(bigauthor_performance_5, "data/author_smallvsbig_performance_citation_me
 ```{r}
 #comparing small vs big statistically
 
-wilcox.test(bigauthor_performance_5$citation_median_big, bigauthor_performance_5$citation_median_small, alternative = "greater")
+wilcox.test(bigauthor_performance_5$citation_median_big, bigauthor_performance_5$citation_median_small, alternative = "greater", conf.int = TRUE)
 
-wilcox.test(bigauthor_performance_5$citation_2y_median_big, bigauthor_performance_5$citation_2y_median_small, alternative = "greater")
+wilcox.test(bigauthor_performance_5$citation_2y_median_big, bigauthor_performance_5$citation_2y_median_small, alternative = "greater",conf.int = TRUE)
 
-wilcox.test(bigauthor_performance_5$corr_citation_median_big, bigauthor_performance_5$corr_citation_median_small, alternative = "greater")
+wilcox.test(bigauthor_performance_5$corr_citation_median_big, bigauthor_performance_5$corr_citation_median_small, alternative = "greater", conf.int = TRUE)
 
 ```
 

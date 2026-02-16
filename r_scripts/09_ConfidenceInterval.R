@@ -2,6 +2,8 @@ library(RVAideMemoire)
 library(here)
 
 
+set.seed(1377)
+
 dat<- readRDS(here("data","consolidate_data_openalex.rds"))
 dat_sjr<- readRDS(here("data","consolidate_journal_data.rds"))
 
