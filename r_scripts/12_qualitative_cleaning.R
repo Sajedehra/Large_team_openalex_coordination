@@ -120,4 +120,99 @@ plot(eul_graph, quantities = list(type = "counts"), fills = list(fill = cols, al
 
 
 
+# Qualitative post-review -------------------------------------------------
+
+
+
+library(readxl)
+library(dplyr)
+library(here)
+
+
+to_binary <- function(x) {
+  ifelse(is.na(x), 0, 1)
+}
+
+codes <- c(
+  "Symbolic",
+  "No clear reason",
+  "Part of bigger consortium",
+  "Financial",
+  "Epistemic",
+  "Logistic",
+  "Temporal"
+)
+
+
+df<- read_xlsx(here("qualitative analysis", "Total_Coding.xlsx"))
+
+df<- df|> mutate(across(c(
+  "Symbolic",
+  "No clear reason",
+  "Part of bigger consortium",
+  "Financial",
+  "Epistemic",
+  "Logistic",
+  "Temporal"
+), to_binary))
+
+
+
+combinations <- df |>
+  rowwise() |>
+  mutate(
+    combination = paste(
+      codes[c_across(all_of(codes)) == 1],
+      collapse = "&"
+    )
+  )|>
+  ungroup() |>
+  count(combination, sort = TRUE)
  
+saveRDS(combinations, here("data" , "euler_dat.rds"))
+
+eul_graph <- euler(
+  setNames(combinations$n, combinations$combination)
+)
+
+
+cols <- c(
+  "#476F84",
+  "#BA6E1D",
+  "#D6BB3B",
+  "#205F4B",
+  "#913914",
+  "#768048",
+  "#F0A430"
+)
+
+
+plot(eul_graph, quantities = list(type = "counts"), fills = list(fill = cols, alpha= 0.3), edges = list(col = "black", lwd = 1.7),
+     labels = list(fontsize = 10))
+ 
+
+
+######
+# adding the information on citation counts.
+# due to using keywords to clean the data, some of these papers (n = 15) did not find their way to the final data
+# we have therefore used an early version of the data to retrieve citation information for all papers in this set.
+
+first_cleaned_data_openalex<- readRDS(here("data", "first_cleaned_data_openalex.rds"))
+
+
+info_df<- first_cleaned_data_openalex|> filter(oa_id %in% df$id)|>rename(id = oa_id)
+df<- df|>left_join(info_df, by= "id")
+df <- df |>
+  rowwise() |>
+  mutate(
+    category = paste(
+      categories[c_across(all_of(codes)) == 1],
+      collapse = " + "
+    )
+  ) |>
+  ungroup()
+
+
+
+
+saveRDS(df, here("qualitative analysis", "complete_coding.rds"))
