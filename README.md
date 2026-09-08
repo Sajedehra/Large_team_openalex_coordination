@@ -31,18 +31,22 @@ Large_team_openalex_coordination/
 │   ├── author_smallvsbig_performance_journal_ranking_15.rds       # Dataset for comparing the performance in journal ranking of large-team vs small-team publications of authors (large team >= 15)
 |   ├── author_smallvsbig_performance_journal_ranking_20.rds       # Dataset for comparing the performance in journal ranking of large-team vs small-team publications of authors (large team >= 20)
 |   ├── author_smallvsbig_performance_journal_ranking_25.rds       # Dataset for comparing the performance in journal ranking of large-team vs small-team publications of authors (large team >= 25)
+|   ├── complete_coding.rds                                        # Clean final version of qualitative analysis
 |   ├── consolidate_data_openalex.rds                              # Final dataset for citation metrics
 |   ├── consolidate_journal_data.rds                               # Final dataset for journal ranking
-|   ├── dunn_fif.rds                                               # result of Dunn test for total citation and group size of 15
-|   ├── dunn_fif2.rds                                              # result of Dunn test for second-year citation and group size of 15
-|   ├── dunn_five.rds                                              # result of Dunn test for total citation and group size of 5
-|   ├── dunn_five2.rds                                             # result of Dunn test for second-year citation and group size of 5
-|   ├── dunn_ten.rds                                               # result of Dunn test for total citation and group size of 10
-|   ├── dunn_ten2.rds                                              # result of Dunn test for second-year citation and group size of 10
-|   ├── first_cleaned_data_openalex.rds                            # Dataset after first round of cleaning
-|   ├── MAXQDA openalex-interdep - Code System.xlsx                # Raw results of qualititive analysis
-|   ├── qualitative_descriptive.rds                                # Cleaned results of qualitative analysis
-|   ├── raw_data_OpenAlex.csv                                      # Raw data that was retrieved from the snapshot
+|   ├── dunn_fif.rds                                               # Result of Dunn test for total citation and group size of 15
+|   ├── dunn_fif2.rds                                              # Result of Dunn test for second-year citation and group size of 15
+|   ├── dunn_five.rds                                              # Result of Dunn test for total citation and group size of 5
+|   ├── dunn_five2.rds                                             # Result of Dunn test for second-year citation and group size of 5
+|   ├── dunn_ten.rds                                               # Result of Dunn test for total citation and group size of 10
+|   ├── dunn_ten2.rds                                              # Result of Dunn test for second-year citation and group size of 10
+|   ├── euler_dat.rds                                              # Cleaned results of qualitative analysis 
+|   ├── first_cleaned_data_openalex.rds                            # Dataset after first round of cleaning (used for random selection of papers for qualitative analysis and to perform Dunn tests)
+|   ├── intercoder_final.rds                                       # Result of inter-coder reliability after finalising code book
+|   ├── intercoder_initial.rds                                     # Result of inter-coder reliability before finalising code book
+|   ├── self_citation_less20.rds                                   # Self-citation results for a random subset with less than 20 authors
+|   ├── self_citation_more20.rds                                   # Self-citation results for a random subset with more than 20 authors
+|   ├── raw_data_OpenAlex.zip                                      # Raw data that was retrieved from the snapshot 
 |   └── scimagojr 2024.csv                                         # SJR journal ranking
 |
 ├── r_scripts/️
@@ -56,10 +60,17 @@ Large_team_openalex_coordination/
 |   ├── 08_journal_ranking.Rmd                                     # All analyses and figures regarding Jounal ranking
 |   ├── 09_ConfidenceInterval.R                                    # Calculating confidence intervals for the correlations using bootstrapping
 |   ├── 10_author_performance_big_vs_small_team.Rmd                # Creating datasets for comparing performance of large-team vs small-team publications of authors across all group sizes and measures
-│   └── 11_qualitative_cleaning.R                                  # Cleaning the qualitative coding and generating Figure 2
+|   ├── 11_intercoder_reliability.R                                # Calculating inter-rater reliability
+|   ├── 11_qualitative_cleaning.R                                  # Cleaning the qualitative coding and generating Figure 2
+|   └── 13_self_citation_descriptive.R                             # Retrieving information for self-citation and descriptive comparisons
 |
 └──  qualitative analysis/️
-   └── openalex-interdep.mqda   # MAXQDA project for qualitative coding
+   ├── check_DL.xlsx                                               # qualitative coding from coder 3
+   ├── check_KV.xlsx                                               # qualitative coding from coder 2
+   ├── check_SR.xlsx                                               # qualitative coding from coder 1
+   ├── Coding_scheme.xlsx                                          # Codebook
+   ├── Total_Coding.xlsx                                           # Complete set of coding for all papers
+   └── openalex-interdep.mqda                                      # MAXQDA project for qualitative coding (previous version qualitative)
 
 
 ```
