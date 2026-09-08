@@ -274,7 +274,34 @@ https://openalex.org/W2943251031
 https://openalex.org/W4388728636
 https://openalex.org/W2985950284
 https://openalex.org/W2591445343
-https://openalex.org/W1995163329"
+https://openalex.org/W1995163329
+https://openalex.org/W4238875611 #added after revisions
+https://openalex.org/W4388364128
+https://openalex.org/W2269580789
+https://openalex.org/W2937750843
+https://openalex.org/W2938773087
+https://openalex.org/W2425602545
+https://openalex.org/W2406828020
+https://openalex.org/W2922345820
+https://openalex.org/W4379388256
+https://openalex.org/W2274392527
+https://openalex.org/W2796486258
+https://openalex.org/W2581877422
+https://openalex.org/W2945089772
+https://openalex.org/W3197764776
+https://openalex.org/W4289309890
+https://openalex.org/W2754997868
+https://openalex.org/W4293242102
+https://openalex.org/W3005043841
+https://openalex.org/W3167725056
+https://openalex.org/W4389151329
+https://openalex.org/W3189284723
+https://openalex.org/W4238092834
+https://openalex.org/W3006797149
+https://openalex.org/W3010280017
+https://openalex.org/W4399766807
+https://openalex.org/W2951097674
+https://openalex.org/W3045688657"
 
 ids_vec <- strsplit(ids, "\n")[[1]]
 
@@ -298,8 +325,8 @@ dat <- dat |>
 
 
 dat <- dat |>
-  filter(!oa_id %in% ids_vec) #23
+  filter(!oa_id %in% ids_vec) #29 + 24
 
 saveRDS(dat, here("data","consolidate_data_openalex.rds"))
 
-
+extra_ones<- quali_papers_with_abstract[360:500,]
