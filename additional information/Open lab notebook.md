@@ -75,3 +75,20 @@ We also found a paper https://openalex.org/W1995163329, that in meta data it has
 Feb 2:
 
 On Jan 30, I sent 54 of the qualitative studies to Daniel to code to check the compatibility with my coding. I checked the codes and for 24 studies we agree on the codes, for 21 studies we have disagreement on adding/removing one interdependency in a group of interdependencies. The later and the remaining 9 papers will be discussed on Thursday.
+
+
+August 11:
+
+We have received the reviews on the paper, and rightfully, the qualitative section and the limited compatibility is among the reviews. Today at the meeting,
+we decided for me to go over the notes I made when we did the random check back in January with Daniel, and come up with clear plan and coding scheme for
+the second coder. I want to go over the pure interdependencies and the convincing myself one more time as well.
+
+
+September 3:
+
+In the past few weeks, I redid the qualitative section. Together with Daniel and Krist, we discussed and went over the codebook multiple times and they
+coded 50 papers each. I made all the coding this time in Excel, as it was easier to use for both Daniel and Krist also I wanted not to see my previous codes
+so they won't impact my new way of coding.
+
+
+
