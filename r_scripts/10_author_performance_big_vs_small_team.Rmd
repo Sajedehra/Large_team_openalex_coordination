@@ -80,6 +80,7 @@ author_performance <- big_authors |>
 ```{r}
 # keeping only papers with 5 authors and lower in small teams - removing cases with only one small-team publication
 bigauthor_performance_5 <- author_performance |>
+  filter(map_int(small_project, nrow) > 1)|>
   mutate(
     small_project = map(
       small_project,
@@ -95,7 +96,7 @@ funs <- list(mean = ~mean(.x, na.rm = TRUE),
              median = ~median(.x, na.rm = TRUE))
 
 
-bigauthor_performance_5 <- bigauthor_performance_5 %>%
+bigauthor_performance_5 <- bigauthor_performance_5 |>
   mutate(
     small_stats = map(small_project, ~ summarize_cols(.x, cols, "_small")),
     big_stats   = map(big_project,   ~ summarize_cols(.x, cols, "_big"))
@@ -104,7 +105,7 @@ bigauthor_performance_5 <- bigauthor_performance_5 %>%
   unnest_wider(big_stats)
 
 
-saveRDS(bigauthor_performance_5, "data/author_smallvsbig_performance_citation_metrics_20.rds")
+saveRDS(bigauthor_performance_5, here("data","author_smallvsbig_performance_citation_metrics_20.rds"))
 
 ```
 
@@ -190,7 +191,7 @@ bigauthor_performance_sjr5 <- bigauthor_performance_sjr5 %>%
   unnest_wider(big_stats)
 
 
-saveRDS(bigauthor_performance_sjr5, "data/author_smallvsbig_performance_journal_ranking_20.rds")
+saveRDS(bigauthor_performance_sjr5, here("data","author_smallvsbig_performance_journal_ranking_20.rds"))
 
 ```
 
