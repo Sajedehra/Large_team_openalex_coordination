@@ -10,6 +10,7 @@ author:
        - writing
        - methodology
        - editing
+       - validation
        - formal analysis
        - data curation
        - visualization
@@ -23,6 +24,8 @@ author:
     email: k.vaesen@tue.nl
     roles: 
        - conceptualization
+       - methodology
+       - validation
        - editing
        - supervision
     affiliations:
@@ -36,6 +39,7 @@ author:
     roles: 
        - conceptualization
        - methodology
+       - validation
        - editing
        - funding acquisition
        - supervision
@@ -60,17 +64,20 @@ execute:
   message: false
   warning: false
 format: 
-    apaquarto-typst:
-        a4paper: true
+    apaquarto-pdf: 
+       documentmode: man
+       keep-tex: true
+       pdf-standard: ua-2
 editor_options: 
   chunk_output_type: console
-abstract: "To increase coordination in science in areas where this would be beneficial for knowledge generation, collaborative work needs to offer clear benefits to individual researchers. This study investigates the motivations for initiating large-team papers and the potential benefits of these projects in psychology. By qualitatively analyzing 500 papers, we find that large-team collaborations are most often instigated to deal with the practical challenges  inherent to complex research questions, but can also be motivated by broader social and or strategic factors. The results from quantitatively analyzing 1,699,513 papers published between 1975 and 2024 indicate that large-team collaborations are more likely to be cited and to appear in higher-ranked journals. Furthermore, their immediate impact on the field, as measured by citation counts within the first 2 years after publication, is on average higher than individually-authored papers. This suggests that contributing to collaborative projects in psychology will likely increase the number of high-rank journal publications to the resume of researchers. Overall, our findings indicate that large-team collaborations can be rewarding for individual researchers both by enabling early scientific impact and by contributing to stronger publication records."
+abstract: "[To increase coordination in areas of science where collaboration can benefit knowledge generation, collaborative work must also provide incentives for individual researchers to participate. This study investigates the reasons for forming large-team collaborations and the individual-level outcomes associated with participating in these projects in psychology. Through a qualitative analysis of 500 papers, we find that large-team collaborations are most often formed to address practical challenges inherent in complex research questions, although they can also serve broader social or strategic functions. A quantitative analysis of 1,699,489 papers published between 1975 and 2024 shows that large-team papers receive more citations and are published in journals with greater citation prestige than smaller-team papers. Large-team papers also receive more citations within the first two years after publication, indicating greater early citation impact. These differences are also apparent within individual researchers' publication records, with their larger-team papers tending to receive more citations than their smaller-team papers. Overall, our findings suggest that large-team collaboration can help researchers address the resource and coordination demands of complex research while also being associated with publication and citation outcomes that are currently rewarded within academia.]{style='color: red'}"
 keywords: [Coordination, Interdependency, Large-team Collaborations, Team science]
 ---
 
 ```{r}
 #| include: false
 #| label: load_data_and_function
+
 
 library(dplyr)
 library(ggplot2)
@@ -86,13 +93,25 @@ library(tibble)
 library(forcats)
 library(eulerr)
 library(here)
+library(patchwork)
+library(tinytable)
 
 dat<- readRDS(here("data","consolidate_data_openalex.rds"))
 dat_sjr<- readRDS(here("data","consolidate_journal_data.rds"))
+
 ci_full<- readRDS(here("data","all_CI_openalex.rds"))
+
 bigauthor_performance_5<- readRDS(here("data","author_smallvsbig_performance_citation_metrics_20.rds"))
 bigauthor_performance_sjr5<- readRDS(here("data","author_smallvsbig_performance_journal_ranking_20.rds"))
-maxqda_sets<- readRDS(here("data","qualitative_descriptive.rds"))
+
+qualitative_coding<- readRDS(here("qualitative analysis", "complete_coding.rds"))
+combinations_qualitative<- readRDS(here("data" , "euler_dat.rds"))
+
+self_citation_more20<-readRDS(here("data", "self_citation_more20.rds"))
+self_citation_less20<- readRDS(here("data", "self_citation_less20.rds"))
+
+intercoder_initial<- readRDS(here("qualitative analysis", "intercoder_initial.rds"))
+intercoder_final<- readRDS(here("qualitative analysis", "intercoder_final.rds"))
 
 options(scipen = 100, digits = 4) #disable scientific notation for large numbers (2856 insteaad of 2.856^3)
 
@@ -105,13 +124,17 @@ apa_p <- function(p) ifelse(p < .001, "p < .001",
 
 ## Introduction
 
-Research questions are becoming increasingly complex [@klug_understanding_2016; @leahey_sole_2016]. To successfully answer these complex questions, researchers need to coordinate to manage interdependencies, whether temporal, logistic, financial, or epistemic [@rasti_framework_2025]. In many fields, coordination has emerged in what is referred to as ‘big-team science’, where many authors work together on a single topic, sometimes over many years. Several of these long-term coordinated research efforts have led to impressive scientific progress, from the discovery of the Higgs Boson at CERN [European Council for Nuclear Research , @aad_observation_2012], to consistent focus on patient-reported outcomes in rheumatology at OMERACT [Outcome Measures in Rheumatology, @tugwell_omeract_2007], and complete and accurate modelling of the climate system at WCRP [World Climate Research Programme, @sommeria_programme_2019].
+[Science increasingly faces questions for which individual teams are poorly equipped]{style="color: red"} [@klug_understanding_2016; @leahey_sole_2016]. [To successfully address these questions, researchers need to coordinate to manage interdependencies, whether temporal, logistic, financial, or epistemic]{style="color: red"} [@rasti2026]. [In many fields, coordination has emerged in what is referred to as large-team collaboration, which can provide researchers with access to a larger pool of resources, such as funding, human resources, complementary skills, and social capital]{style="color: red"} [@lee2015]. Several of these long-term coordinated research efforts have led to impressive scientific progress, from the discovery of the Higgs Boson at CERN [European Council for Nuclear Research, @aad_observation_2012], to a consistent focus on patient-reported outcomes in rheumatology at OMERACT [Outcome Measures in Rheumatology, @tugwell_omeract_2007], and complete and accurate modelling of the climate system at WCRP [World Climate Research Programme, @sommeria_programme_2019]. [Psychology has also increasingly adopted such collaborative approaches, particularly following large-scale replication initiatives such as Many Labs and the Reproducibility Project: Psychology]{style="color: red"} [@open_science_collaboration_estimating_2015; @klein2014].
 
-A growing literature documents the rise of large-team science papers and evaluates whether the collective investments necessary for coordinated studies are justified. Many studies have found that papers by large teams receive more citations, which can be interpreted as a proxy for greater scientific impact [@wuchty_increasing_2007; @wu_large_2019; @uzzi_atypical_2013; @coles_prevalence_2024; @hsiehchen_multinational_2015; @bikard_exploring_2015; @porter_research_2012]. Ever since the successful completion of the Reproducibility Project: Psychology [@open_science_collaboration_estimating_2015], where 270 authors collaboratively performed 100 replication studies, Psychology has increasingly embraced large-team collaboration [@coles_prevalence_2024]. As has been observed in other disciplines, on average, large-team science papers in psychology receive more citations and attention by news outlets and social media than papers with fewer authors [@coles_prevalence_2024; @coles_rise_2025]. Large-team research efforts are especially common in clinical psychology, where collaborations focus on the treatment and prevention of psychological disorders [@coles_rise_2025].
+[Yet the collective epistemic benefits of coordination do not necessarily imply that participating in large-team science is beneficial to individual researchers, given the rewards structures in academia. Coordinated projects require researchers to invest scarce time, expertise, and resources, while potentially reducing autonomy and distributing scientific credit among a larger number of contributors. Sustaining large-scale coordination may therefore depend partly on whether these investments also generate benefits for the careers of researchers who make these contributions. We therefore face two questions: First, what are the interdependencies that motivate large-team projects? For example, do people collaborate to perform expensive projects, collect data that is logistically impossible in a smaller team, or do they examine questions that require more expertise than a single person can acquire? Second, what do individual researchers stand to gain by participating in large-team projects that might benefit their individual careers?]{style="color: red"}
 
-In the current manuscript, we build on previous work by investigating the nature of large-team research projects in psychology. We begin with a qualitative analysis of the reasons why psychologists start large-team research projects, focusing on the types of interdependencies that result in large-team collaboration. In a conceptual analysis of coordination in science, @rasti_framework_2025 identified four categories of interdependencies that increase the need for coordination. Interdependencies can be logistic (i.e., answering the research question requires more work than a single person can complete in a given time), financial (i.e., answering the research question requires more money than any single research has access too), temporal (i.e., answering the research question requires part of the work to be done by specific researchers, before other parts of the work are completed by other researchers), and epistemic (i.e., answering the research question requires specialists to combine their expertise). This qualitative analysis allows us to clarify when and why researchers perceive coordination to be necessary in psychological science. We then complement this qualitative work with a quantitative analysis of the scientific impact of large-team research, to better understand the potential benefits of engaging in collaborative research projects for psychological scientists. We examine 1) the ranking of journals where large-team research efforts are published, 2) their immediate impact on the field, as indicated by how quickly large-team research efforts accumulate citations, 3) whether papers based on large-team research efforts have relatively more scientific impact than other papers published by the same researcher, and 4) how likely it is that a research project with a small team achieves the same (or more) scientific impact compared to large-team projects. Together, these analyses provide descriptive evidence of the potential benefits and limits of engaging in large-team research in psychology [^1].
+[Existing research provides only partial answers to these questions. A growing body of literature shows that, across different fields, papers produced by larger teams tend to receive more citations]{style="color: red"} [@wuchty_increasing_2007; @wu_large_2019; @uzzi_atypical_2013; @hsiehchen_multinational_2015; @bikard_exploring_2015; @porter_research_2012; @larivière2015]. [This pattern has also been observed in psychology, where large-team papers receive more citations and greater attention from news outlets and social media than papers with fewer authors]{style="color: red"} [@coles_prevalence_2024; @coles_rise_2025]. [However, existing studies have largely examined these associations at the level of papers, often using a particular threshold to distinguish large from smaller teams. This leaves open whether the citation advantage associated with larger teams is also apparent within individual researchers’ publication records and how citation outcomes vary across the broader distribution of team sizes]{style="color: red"}
 
-[^1]: Although we used a similar data source to @coles_rise_2025 (both studies used OpenAlex data), our overlap with their work is limited to the use of impact as measured by total citation counts. We employed a different definition of time-corrected citations and focused exclusively on English research articles. In addition, we included the field of Decision Science, which contains many psychology-related publications. Our qualitative analysis also goes beyond topic classification by examining the interdependencies that motivated the formation of large-team projects. For more information, check the method section.
+[We address these questions using a large-scale bibliometric analysis of psychology publications. We first examine how citation impact varies across team sizes, including citations counts within the first two years after publication. We then extend previous work in two ways. First, we compare researchers’ own larger- and smaller-team publications, allowing us to examine whether the association between team size and citation impact is also apparent within individual researchers’ publication records. Second, we examine where the citation impact typical of larger-team papers falls within the citation distribution of smaller-team papers, providing a distributional perspective on the magnitude of these differences. Finally, we examine whether larger- and smaller-team papers differ in the citation prestige of the journals in which they are published, both across papers and within individual researchers’ publication records.]{style="color: red"}
+
+[We complement these analyses by qualitatively examining the types of projects for which psychologists form large teams and the reasons for coordination at this scale. Guided by the conceptual model of Rasti et al.]{style="color: red"} [-@rasti2026] [we investigate whether coordination arises from logistic, financial, temporal, or epistemic interdependencies, while also identifying motivations that extend beyond these practical requirements. This analysis clarifies when large-scale coordination is currently perceived as necessary or desirable. Together, these analyses move beyond asking whether large teams produce highly cited science, and provide novel insights into why researchers coordinate at this scale, and whether doing so is associated with benefits that could help sustain individual participation in collectively valuable research]{style="color: red"}.[^1]
+
+[^1]: Although we used a similar data source to @coles_rise_2025 (both studies used OpenAlex data), our overlap with their work is limited to the use of total citation counts. We employed a different definition of time-corrected citations and focused exclusively on English research articles. In addition, we included the field of Decision Science, which contains many psychology-related publications. Our qualitative analysis also goes beyond topic classification by examining the interdependencies that motivated the formation of large-team projects. For more information, check the method section.
 
 ## Method
 
@@ -119,13 +142,43 @@ Our analysis used more than 1.5 million psychology papers from the OpenAlex data
 
 OpenAlex stores all scholarly documents including journal articles within the *works* entity. We iterated over the snapshot’s works section and retrieved all entries in which Psychology or Decision Science appeared as the primary or secondary field. Field assignment in OpenAlex is largely automated: a large language model (LLM) infers topics from the title, abstract, journal name, and citation network, and then maps topics to the most likely field using an algorithm developed by CWTS [@openalex_2024_whitepaper]. The OpenAlex team acknowledged that automated assignment can produce errors. Accordingly, we included Decision Science in adittion to Psychology, as our initial checks showed that this field in OpenAlex contains many psychology-related articles, including the Reproducibility Project: Psychology, which is a seminal large-team science project in psychology [@open_science_collaboration_estimating_2015]. We then filtered out non-psychology items by title and journal-name keywords (e.g., “symposium”, “table of content”, “Synthesiology”, and “Aerospace”). During the qualitative analysis we identified more keywords to add to the list of records to remove, and reran all analyses (full list of keywords can be found in the Supplementary Materials). @fig-preprocessing shows the preprocessing and data cleaning steps.
 
-![Data Cleaning Process](figures/manuscript/flowchart.png){#fig-preprocessing}
+![Data Cleaning Process](figures/manuscript/flowchart2.png){#fig-preprocessing}
 
 ### Metrics of Interest
 
-To measure scholarly impact, we use (a) total citation counts, (b) second-year citation counts, and (c) publication-date–corrected citation counts. We chose not to adjust for self-citations for two reasons. First, we lacked reliable self-citation data for all papers in the dataset. Second, based on our own prior observations, large-team papers often bring together many of the field’s active scholars (e.g., ManyPrimates) and produce results that serve as reference points for an entire research line. Discounting self-citations would therefore risk understating the field-level impact that is central to this study. In this document, analyses use second-year citation counts; robustness analyses with the other metrics (i.e., total citation and publication-date–corrected citation) are reported in the Supplementary Materials.
+```{r}
+#| cache: true
 
-We operationalized the impact of journals using the SCImago Journal Rank (SJR), because it is an open-access database (unlike Impact Factor data) and offers broader coverage (31,125 journals vs. 22,249 journals in Web of Science). SJR divides all citations to a journal by all documents published by the journal over a specific time window. Unlike the Impact Factor, SJR weighs citations by the prestige of the citing journal, which is estimated via a PageRank algorithm on the journal citation network, and discounts self-citations. Although excluding self-citations may underestimate a journal’s true prestige, we relied on SJR because we could not identify alternative open-access metrics that capture journals' ranking. For comparison, in 2024, *Nature* had an Impact Factor of 48.5 and an SJR of 18.288 and *Psychological Science* had and Impact Factor of 5.1 and an SJR of 2.5. Despite greater coverage, only `r nrow(dat_sjr)` records in our dataset had matching journals in the SJR records. Therefore, all results based on journal prestige is based on this subset.
+self_citation_test<- rbind(self_citation_less20, self_citation_more20)
+
+self_citation_test<- self_citation_test|> mutate(category = ifelse(n_authors>=20, "big", "small"))
+
+model <- glm(
+  cbind(n_self_citations_new, non_self_citation) ~ category,
+  family = quasibinomial,
+  data = self_citation_test
+)
+
+
+b  <- coef(model)["categorysmall"]
+se <- summary(model)$coefficients["categorysmall", "Std. Error"]
+
+CI <- b + c(-1, 1) * qnorm(.975) * se
+p_model<-apa_p(summary(model)$coefficients["categorysmall", "Pr(>|t|)"])
+
+
+
+non_self_citation_comparison<- wilcox.test(self_citation_more20$non_self_citation, self_citation_less20$non_self_citation, alternative = "greater", conf.int = TRUE)
+
+
+
+p_value_nonself_citation_compare<- apa_p(non_self_citation_comparison$p.value)
+
+```
+
+To measure [citation impact]{style="color: red"}, we use (a) total citation counts, (b) second-year citation counts, and (c) publication-date–corrected citation counts. We chose not to adjust for self-citations for two reasons. First, we lacked reliable self-citation data for all papers in the dataset. Second, based on our own prior observations, large-team papers often bring together many of the field’s active scholars (e.g., ManyPrimates) and produce results that serve as reference points for an entire research line. Discounting self-citations would therefore risk understating the field-level impact that is central to the current study. [However, we examined whether this decision may have affected the results. We drew a random sample of 500 papers with 20 or more authors and a random sample of 500 papers with fewer than 20 authors. Small-team papers had a lower proportion of self-citations than large-team papers]{style="color: red"} (estimated proportion: `r round(sum(self_citation_less20$n_self_citations_new, na.rm = TRUE)/sum(self_citation_less20$n_citations_new, na.rm = TRUE), digit=4)*100` vs. `r round(sum(self_citation_more20$n_self_citations_new, na.rm = TRUE)/sum(self_citation_more20$n_citations_new, na.rm = TRUE), digit=4)*100`; OR = `r round(exp(summary(model)$coefficients["categorysmall", "Estimate"]), 2)`, `r p_model`, CI = \[`r round(exp(CI[1]), 2)`,`r round(exp(CI[2]), 2)`\]). However, excluding self-citations did not eliminate the difference in citation counts between large- and small-team papers (W = `r non_self_citation_comparison[["statistic"]][["W"]]`, `r p_value_nonself_citation_compare`, HL = `r round(non_self_citation_comparison[["estimate"]][["difference in location"]], 2)`, CI = \[`r round(non_self_citation_comparison[["conf.int"]][[1]], 3)`, $\infty$). [This shows it is unlikely that self-citation alone accounts for the observed citation difference between smaller and larger teams. Note that self-citation information was available only for total citations; we therefore could not conduct the corresponding analysis for citations received within the first two years after publication.]{style="color: red"} In this document, analyses use second-year citation counts; robustness analyses with the other metrics (i.e., total citation and publication-date–corrected citation) are reported in the Supplementary Materials.
+
+We operationalized the impact of journals using the SCImago Journal Rank (SJR). [SJR is an open-access journal-ranking metric based on the citation impact of papers published in a journal, similar to other widely used journal-level metrics such as the Journal Impact Factor,]{style="color: red"} but offers broader coverage (31,125 journals vs. 22,249 journals in Web of Science). SJR divides all citations to a journal by all documents published by the journal over a specific time window. Unlike the Impact Factor, SJR weighs citations by the prestige of the citing journal, which is estimated via a PageRank algorithm on the journal citation network, and discounts self-citations. Although excluding self-citations may underestimate a journal’s true prestige, we relied on SJR because we could not identify alternative open-access metrics that capture journals' ranking. For comparison, in 2024, *Nature* had an Impact Factor of 48.5 and an SJR of 18.288 and *Psychological Science* had and Impact Factor of 5.1 and an SJR of 2.5. Despite greater coverage, only `r nrow(dat_sjr)` records in our dataset had matching journals in the SJR records. Therefore, all results based on journal prestige is based on this subset.
 
 ### Team size
 
@@ -135,13 +188,13 @@ In this paper, we did not impose a single threshold for large-team papers. Where
 
 We randomly selected 1000 papers with 20 or more authors for our qualitative analysis of the types of interdependencies that motivate researchers to collaborate. We chose 20 as the cut-off for large-team projects because pairwise comparisons of citation counts showed that papers with more than 20 authors have consistently higher mean citation ranks than papers by smaller teams (see Supplementary Materials).
 
-Our goal was to code 500 valid records, while at the same time using the qualitative checks to identify papers that did not meet the inclusion criteria of this study. We analyzed 647 papers in total over three rounds using MAXQDA 2022 software [version 22.1.0, @verbi_software_maxqda_2021]. In the first round, the first author assessed paper quality and conducted an initial coding of relevant papers based on the reason for large-team collaboration. Only ambiguous cases (n = 8), in which it was unclear whether a paper qualified as psychology research, were discussed with the last author. From the 146 papers that did not meet the inclusion criteria, we distilled keywords that were used in the second round of data cleaning (see @fig-preprocessing).
+Our goal was to code 500 valid records, while at the same time using the qualitative checks to identify papers that did not meet the inclusion criteria of this study. We analyzed 669 papers in total using MAXQDA 2022 software for the first round [version 22.1.0, @verbi_software_maxqda_2021] AND Microsoft Excel in the final round. From the 169 papers that did not meet the inclusion criteria, we distilled keywords that were used in the second round of data cleaning (see @fig-preprocessing).
 
-In the second iteration, the first author reviewed all papers again and refined the initial codes into clearer categories. When the aim of a paper was not clear from the abstract, the methods and results sections were manually examined. The first author then conducted an additional coding round to assign papers to overarching interdependency categories. During this stage, the CREDIT statement (when available) was examined for papers with no clear rationale for large-team collaboration, in order to gain insight into the roles of individual authors. During this process, we identified one paper with incorrect metadata: a publication with eight authors had been coded as having 45 authors. This record was manually removed. However, it is possible that additional metadata errors remained undetected among large-team publications.
+[We used a combined deductive and inductive coding approach. The initial codebook was informed by the four types of interdependence identified by]{style="color: red"} @rasti2026: [logistic, financial, temporal, and epistemic interdependencies. During an initial round of coding, we allowed additional reasons for large-team collaboration that were not adequately captured by these predefined categories to emerge from the data. The authors iteratively discussed these cases and refined the definitions, inclusion criteria, and examples associated with each code until consensus on the final codebook was reached. Previously coded papers were subsequently reassessed using the final codebook. Papers could receive more than one interdependency; however, interdependency codes and codes reflecting additional reasons for collaboration were mutually exclusive.]{style="color: red"}
 
-In this iteration, the last author conducted two additional coding procedures. First, the last author reviewed entire papers initially coded as having no clear interdependencies (n = 53). Discrepancies emerged for several reasons, including revisions to what counted as a criterion for interdependencies (e.g., the threshold for qualifying as large-scale data collection), initial misunderstandings between two concepts of why authors collaborated and whether a collaboration required many authors, and errors in identifying interdependencies. Based on this review, the “no clear interdependency” category was divided into two subcategories (“No clear reason” and “Part of a larger consortium”), and the remaining papers (n = 33) were reassigned to other categories.
+[To assess coding reliability, the second and third authors each independently coded a randomly selected 10% of the final sample (50 papers each; 100 papers in total) using the final codebook. After the first batch of 50 papers, inter-coder reliability was checked. Reliability can be computed in two ways. Per criterion (e.g., did both coders assign or not assigned the category 'logistic'). Although in some categories the agreement was more than 90%, the mean agreement across all categories was `r round(mean(intercoder_initial$Percent_Agreement), 2)` percent. The second calculation can be based on whether each coder assigned exactly the same set of categories (e.g., both coders assign 'logistic', 'financial', and 'epistemic'), where the agreement was quite low at `r 16/50*100` percent. We, therefore, adjusted the codebook and specified rules for all categories in more detail. The second batch was coded afterward with the finalized codebook and led to the mean inter-coder agreement of `r round(mean(intercoder_final$Percent_Agreement), 2)` percent for criterion agreement and `r 30/50*100` percent for all-category agreement. The main reason for imperfect agreement was unclear reporting in the papers, which required coders to make assumptions. Disagreements, all of which involved edge cases, were discussed among the authors and resolved through consensus. Following the reliability assessment, the first author coded the remainder of the sample using the finalized codebook. More details on reliability assessment and agreement on the code level are available in the Supplementary Materials.]{style="color: red"}
 
-Second, the last author conducted a blind quality-check coding on a randomly selected subset of papers (n = 54). Agreement was reached for 24 papers, while 21 papers showed disagreement regarding the addition or removal of a single interdependency. The remaining nine papers involved disagreements on more than one interdependency. Through discussion, we identified two main sources of disagreement: incomplete reporting of interdependencies in the papers and the difficulty of defining a clear threshold for when a component was sufficiently strong to constitute evidence of an interdependency. To ensure consistency across the dataset, we retained the codes assigned by the first author for papers with discrepancies. Overall, these challenges highlight the need for future research to clarify the boundaries between different types of interdependencies (e.g., financial and logistical dependencies often co-occur, but it is often ambiguous if data collection is costly enough to warrant a large team of co-authors). Furthermore, it is often ambiguous whether a study had sufficient epistemic interdependencies to need a large team of authors to address a research question. These ambiguities deserve attention in future research, and removing them requires that authors disclose additional information about the extent to which interdependendencies were present.
+[Coding was primarily based on the abstracts. Coders additionally consulted the Methods section when 1) the abstract provided evidence for only one code, to determine whether any forms of interdependence were evident elsewhere in the paper; 2) it was unclear whether the study involved original data collection or re-analysis of existing data; or 3) the sample size could not be determined from the abstract. For cases with no clear reason for large-team collaboration, the author-contribution statement was also consulted when available.]{style="color: red"}
 
 ## Results
 
@@ -150,27 +203,37 @@ Second, the last author conducted a blind quality-check coding on a randomly sel
 ```{r}
 #| cache: true
 
-maxqda_long <- maxqda_sets |>
-  select(category, Frequency,financial, logistic, epistemic, temporal, none) |>
-  pivot_longer(
-    cols = c(financial, logistic, epistemic, temporal, none),
-    names_to = "interdependency",
-    values_to = "present"
-  ) |>
-  filter(present) |>
-  group_by(interdependency) |>
-  summarise(total_cases = sum(Frequency, na.rm = TRUE), .groups = "drop")|>
-  arrange(total_cases)
+frequency_qual <- qualitative_coding |>
+  summarise(
+    across(
+      c(
+        Symbolic,
+        Logistic,
+        Financial,
+        Epistemic,
+        Temporal,
+        `No clear reason`,
+        `Part of bigger consortium`
+      ),
+      ~ sum(.x == 1, na.rm = TRUE)
+    )
+  )
 
 ```
 
-@fig-qualitative visualizes the interdependencies that were present in the large-team science papers in our sample. Most papers pointed toward more than one interdependency in their abstracts. Logistic and financial interdependencies were most prevalent, and could be identified in `r maxqda_long$total_cases[5]` and `r maxqda_long$total_cases[4]` papers, respectively. These categories included papers with hard-to-reach populations (e.g., primates, participants with comorbid conditions), expensive measurement methods (e.g., fMRI), large-scale data collections, data collection from multiple places, and labour intensive studies (e.g., large meta-analyses).
+@fig-qualitative visualizes the interdependencies identified in the large-team science papers in our sample. [Among the four types of interdependency, logistic and financial interdependencies were the most frequent, identified in `r frequency_qual$Logistic` and `r frequency_qual$Financial` papers respectively. Logistic and financial interdependencies often co-occur (i.e., in `r combinations_qualitative$n[combinations_qualitative$combination == "Financial&Logistic"]` papers) because collecting large sample sizes often combine both.]{style="color: red"}
 
-Temporal (`r maxqda_long$total_cases[3]` papers) and epistemic (`r maxqda_long$total_cases[2]` papers) interdependencies were next in terms of frequency. These categories included papers with multiple data collection points, randomized controlled trials, longitudinal studies, papers with clear specialised roles (e.g., experts for diagnosis, translation, or handling specific type of data), consensus and roadmap papers, and papers offering conceptual work. We also identified a category of articles that included more than 20 authors for non-scientific reasons. These articles included position papers, perspective pieces, commentaries, narrative reviews, and event/workshop reports. The presence of many authors is often used to signal support of the position, or consensus on a perspective, and is largely (although not always completely) symbolic.
+[Papers were coded as involving logistic interdependency when they involved data collection across multiple sites; resource-intensive data collection (e.g., fMRI or data collection from primates); systematic reviews with more than 100 papers at the screening stage; secondary analyses combining data from multiple sources; or bibliometric and meta-scientific analyses with samples substantially larger than is typical for such research. Financial interdependency primarily captured studies in which the required sample size was sufficiently large to make the project resource-intensive. For quantitative research, this included studies with more than 100 participants from non-general populations (e.g., people with specific disorders), more than 1,000 participants from general populations in online studies, or more than 200 participants from general populations in in-person studies. For qualitative studies, we used a threshold of 100 participants.]{style="color: red"}
 
-In a few cases, we could not identify any reason why articles included more than 20 authors (labelled as *No clear reason*). These papers may have had financial, logistic, temporal, or epistemic interdependencies were not clearly articulated in the paper. It may also be the case that the norms of a specific field require the inclusion of all members of a group, rather than only those who directly contributed to the paper. Only five papers in this category had a CREDIT statement; three credited only a subset of authors, while the other two credited many authors only for review and editing.
+[Epistemic (`r frequency_qual$Epistemic` papers) and temporal (`r frequency_qual$Temporal` papers) interdependencies were less frequent. Epistemic interdependencies included complex clinical trials requiring expertise beyond what would typically be available to a single researcher; explicitly multidisciplinary research, or other research projects requiring multiple domains of specialized knowledge (e.g., combining physiological and psychological interventions); skills requiring extensive training (more than four years; e.g., conducting diagnostic interviews); and the development of research tools or the proposal or revision of guidelines.]{style="color: red"}
 
-Lastly, we identified papers that were part of a larger coordinated study or consortium, but where the specific paper focused on secondary analysis of previously collected data. Four of these papers included a CREDIT statement, which made it clear that some authors were responsible for the paper itself, while others were included in the author list because the data came from the larger consortium. These papers clearly show the tension between individual and group contributions. Larger collaborations that are largely the work of a few individuals, but that would not have been possible without previous work by the larger team. The complexity of categorizing papers in our analysis highlights the need for greater attention to what qualifies as authorship. Fields should work together to standardize authorship criteria. CREDIT statements can help to transparently communicate the interdependencies involved in a project and the roles each author plays in the paper.
+[Papers were coded as involving temporal interdependency when they included multiple data-collection time points (e.g., cohort or longitudinal studies and randomized controlled trials with follow-ups at least 3 months apart), multistage consensus development, or multiple sequential research stages within the same paper, such as developing and testing an instrument or conducting an original study and its replication. Importantly, our categories were designed to capture interdependencies that could be identified from a single published paper. Consequently, our temporal category captures somewhat different cases from those described by]{style="color: red"} @rasti2026, [because temporally interdependent stages of a research project do not necessarily appear within the same publication.]{style="color: red"}
+
+[We also identified a category of papers that were part of a larger coordinated study or consortium. These papers typically reported secondary analyses of data previously collected as part of a single cohort or a larger randomized controlled trial. Large and complex studies can produce datasets with substantial informational value that can subsequently be used to address research questions beyond those examined in the original study. However, as it was not always possible to determine the extent to which the interdependencies involved in the original study were inherited by the secondary analysis, we kept these papers as a separate category.]{style="color: red"}
+
+[Large teams were also present in papers for which we could not identify the types of research interdependency described above. One category comprised papers in which the large number of authors appeared primarily to serve a consensus or signalling function rather than to enable resource-intensive empirical research. These included position papers, perspective pieces, commentaries, non-systematic reviews, event or workshop reports, and papers proposing research roadmaps. In such papers, the inclusion of many authors may indicate broad support for a position, consensus around a perspective, or representation of a larger research community. We therefore classified these papers separately.]{style="color: red"}
+
+[Finally, in a small number of cases, we could not identify a clear reason for the inclusion of more than 20 authors. These papers did not meet the criteria for any of the other categories, and the Methods and, where available, author-contribution statements did not provide further clarification. This does not necessarily imply that no interdependencies were present. It is possible that financial, logistic, temporal, or epistemic interdependencies existed, but they were not clearly enough communicated in the published paper to be identified using our coding procedure. Alternatively, norms of a specific field may require the inclusion of all members of a group, rather than only those who directly contributed to the paper, which may be the case for some of the papers in this category.]{style="color: red"}
 
 ```{r}
 #| label: fig-qualitative
@@ -178,30 +241,13 @@ Lastly, we identified papers that were part of a larger coordinated study or con
 #| fig-align: center
 #| fig-width: 8
 #| fig-height: 8
-#| cache: true
 
 
 
-eul_graph<- euler(c(
-  "Symbolic" = 38,
-  "No clear\nreason" = 12,
-  "Part of a larger\nconsortium" = 8,
-  "Financial" = 34,
-  "Logistic" = 64,
-  "Epistemic" = 49,
-  "Temporal" = 28,
-  "Financial&Epistemic" = 4,
-  "Financial&Temporal" = 25,
-  "Financial&Logistic" = 116,
-  "Logistic&Temporal" = 16,
-  "Temporal&Epistemic" = 29,
-  "Temporal&Epistemic&Logistic" = 10,
-  "Financial&Logistic&Epistemic" = 9,
-  "Financial&Temporal&Epistemic" = 6,
-  "Financial&Logistic&Temporal" = 32,
-  "Financial&Logistic&Temporal&Epistemic" = 8,
-  "Logistic&Epistemic" = 12
-))
+eul_graph <- euler(
+  setNames(combinations_qualitative$n, combinations_qualitative$combination)
+)
+
 
 cols <- c(
   "#476F84",
@@ -213,9 +259,8 @@ cols <- c(
   "#F0A430"
 )
 
-
-
-plot(eul_graph, quantities = list(type = "counts"), fills = list(fill = cols, alpha= 0.3), edges = list(col = "black", lwd = 1.7), labels = list(fontsize = 10))
+plot(eul_graph, quantities = list(type = "counts"), fills = list(fill = cols, alpha= 0.3), edges = list(col = "black", lwd = 1.7),
+     labels = list(fontsize = 9))
 
 # with legends (we have to change colors for this)
 #plot(eul_graph, quantities = list(type = "counts"), fills = list(fill = cols, alpha= 0.3), edges = list(col = "black", lwd = 1.7),labels = FALSE, legend = TRUE)
@@ -231,7 +276,7 @@ In line with previous research [@coles_rise_2025], we found an increased frequen
 #| fig-align: center
 #| fig-width: 8
 #| fig-height: 5
-#| cache: true
+
 
 pal <- c("#023743FF","#72874EFF","#476F84FF","#A4BED5FF","#A40000FF",
          "#453947FF","#774762FF","#BA6E1DFF","#D6BB3BFF","#755028FF",
@@ -246,10 +291,12 @@ dat |>
   geom_vline(xintercept=c(2013,2023), linetype="dashed", colour = "darkred")+
   facet_wrap(~ author_group_ten, axes = "all") +
   scale_color_manual(values = pal, guide = "none") +
-  theme_classic()+
+  theme_classic(base_size = 9)+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
   xlab("Publication year")+
   ylab("Density")
+
+
 
 ```
 
@@ -296,7 +343,7 @@ des2<- dat_sjr|>
             across(c(SJR), list( mean = ~round(mean(.x), 2), sd = ~round(sd(.x), 2), median = ~round(median(.x), 2))))
 ```
 
-Overall, bigger teams receive more citations ($\rho$ = `r rho1`, CI = \[`r ci_full$ci.l[1]`, `r ci_full$ci.u[1]`\]) [^2]. This relationship is slightly stronger for the second-year citation count ($\rho$ = `r rho2`, CI = \[`r ci_full$ci.l[2]`, `r ci_full$ci.u[2]`\]) and slightly stronger for publication-date–corrected citation count ($\rho$ = `r rho3`, CI = \[`r ci_full$ci.l[3]`, `r ci_full$ci.u[3]`\]). Analyzing papers in bins of 10 authors, the median and mean of the second-year citation counts increased fairly consistently up to the 45-author group followed by many fluctuations (see @fig-des-citation). For example, papers with 4 authors received on average `r des$citation_2y_mean[9] - des$citation_2y_mean[4]` less citation (or when analyzing median citations rates, `r des$citation_2y_median[9] - des$citation_2y_median[4]` citation less) in the first two year than papers with 36-45 authors. This suggests that projects with larger author groups have a relatively large immediate impact, as would be expected when researchers in a field come together to study a topic they all believe should be addressed at this time.
+Overall, bigger teams receive more citations ($\rho$ = `r rho1`, CI = \[`r ci_full$ci.l[1]`, `r ci_full$ci.u[1]`\]) [^2]. This relationship is slightly stronger for the second-year citation count ($\rho$ = `r rho2`, CI = \[`r ci_full$ci.l[2]`, `r ci_full$ci.u[2]`\]) and slightly stronger for publication-date–corrected citation count ($\rho$ = `r rho3`, CI = \[`r ci_full$ci.l[3]`, `r ci_full$ci.u[3]`\]). Analyzing papers in bins of 10 authors, the median and mean of the second-year citation counts increased fairly consistently up to the 45-author group followed by many fluctuations (see @fig-des-citation). For example, papers with 4 authors received on average `r des$citation_2y_mean[9] - des$citation_2y_mean[4]` less citation (or when analyzing median citations rates, `r des$citation_2y_median[9] - des$citation_2y_median[4]` citation less) in the first two year than papers with 36-45 authors. This suggests that projects with larger author groups have a relatively large immediate [recognition]{style="color: red"}, as would be expected when researchers in a field come together to study a topic they all believe should be addressed at this time.
 
 [^2]: Due to the large sample size (N = `r n_used` for citation measures and N = `r n_used_sjr` for journal ranking), all reported correlations are significant, with `r p_txt4`.
 
@@ -306,7 +353,7 @@ Overall, bigger teams receive more citations ($\rho$ = `r rho1`, CI = \[`r ci_fu
 #| fig-align: center
 #| fig-width: 8
 #| fig-height: 4
-#| cache: true
+
 
 dat |>
   group_by(author_group_ten) |>
@@ -315,15 +362,16 @@ dat |>
   stat_summary(
     fun = mean, geom = "point", color = "#800000FF", size = 2
   ) +
-  theme_classic() +
+  theme_classic(base_size = 11) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
   labs(x = "Author groups", y= "Second-year citation count")
+
 
 ```
 
 ### Larger teams are published in higher-ranked journals
 
-The rank correlation between number of authors and SJR value ($\rho$ = `r rho4`, CI = \[`r ci_full$ci.l[4]`, `r ci_full$ci.u[4]`\]) is smaller than the correlation with citation count reported above. Here papers with 4 authors appear in journals that is on average `r des2$SJR_mean[9] - des2$SJR_mean[4]` lower in rank score compared to papers with 36-45 authors, and the median rank score is `r des2$SJR_median[9] - des2$SJR_median[4]` lower. @fig-des-journal shows that mean and median SJR value increase consistently until the 46-55 authors bin, and then fluctuate for larger groups.
+The rank correlation between number of authors and SJR value ($\rho$ = `r rho4`, CI = \[`r ci_full$ci.l[4]`, `r ci_full$ci.u[4]`\]) is smaller than the correlation with citation count reported above. Here papers with 4 authors appear in journals that are on average `r des2$SJR_mean[9] - des2$SJR_mean[4]` lower in rank score compared to papers with 36-45 authors, and the median rank score is `r des2$SJR_median[9] - des2$SJR_median[4]` lower. @fig-des-journal shows that mean and median SJR value increase consistently until the 46-55 authors bin, and then fluctuate for larger groups.
 
 ```{r}
 #| label: fig-des-journal
@@ -331,7 +379,7 @@ The rank correlation between number of authors and SJR value ($\rho$ = `r rho4`,
 #| fig-align: center
 #| fig-width: 8
 #| fig-height: 4
-#| cache: true
+
 
 dat_sjr |>
   group_by(author_group_ten) |>
@@ -340,15 +388,14 @@ dat_sjr |>
   stat_summary(
     fun = mean, geom = "point", color = "#800000FF", size = 2
   ) +
-  theme_classic() +
+  theme_classic(base_size = 11) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
   labs(x = "Author groups", y= "SJR")
 
-ggsave(here("figures", "Fig5.svg"), width = 8, height = 5, units = "in" )
-ggsave(here("figures", "Fig5.png"), width = 8, height = 5, units = "in" )
+
 ```
 
-### Papers authored by larger teams are more likely to be published in higher-ranked journals, and receive more citations
+### Only small proportion of papers authored by smaller teams are published in higher-ranked journals, and receive higher citations
 
 ```{r}
 #|   cache: true
@@ -380,51 +427,50 @@ com_perc_sjr<- dat_sjr |>
   )
 ```
 
-Although larger teams publish papers that are on average cited more often, papers by smaller teams can also have high impact, and some of the highest impact papers are written by small teams. However, the probability that papers written by small teams have high impact is low. To explore the probability that a small team produces a paper with more impact than a large team, we examined the maximum number of citations after 2 years at the 70th, 80th, 90th, and 99th percentile. Given that the mean and median second-year citation for papers with 20 authors or more is `r mm_b$mean` and `r mm_b$median` respectively, @fig-percentile shows that to have a chance to outperform the median second-year citation of larger author papers, small teams have to be at the top `r 100 - round(com_perc$percentile[1], 2)`th percentile. In other words, `r round(com_perc$percentile[1], 2)`% of articles by smaller team authors receive at maximum less number of citations in their first 2 years than the median citations that papers with larger author teams receive during the same time span. The same is true for the journal rank score but to a lower extent. To beat the median SJR value of larger teams (`r mm_sjr$median`), smaller team papers should be at the top `r 100 - round(com_perc_sjr$percentile[1], 2)`th percentile. This, in general, suggests that although it is in principle possible for small teams to publish a paper that has higher impact than papers by larger teams, it is relatively unlikely. Pursuing impact in a smaller team is therefore a risky strategy.
+Although larger teams publish papers that are on average cited more often, papers by smaller teams can also have high impact, and some of the highest impact papers are written by small teams. However, the probability that papers written by small teams have high impact is low. To explore the probability that a small team produces a paper with more impact than a large team, we examined the maximum number of citations after 2 years at the 70th, 80th, 90th, and 99th percentile. Given that the mean and median second-year citation for papers with 20 authors or more is `r mm_b$mean` and `r mm_b$median` respectively, @fig-percentile shows that to have a chance to outperform the median second-year citation of larger author papers, small teams have to be at the top `r 100 - round(com_perc$percentile[1], 2)`th percentile. In other words, `r round(com_perc$percentile[1], 2)`% of articles by smaller team authors receive at maximum less number of citations in their first 2 years than the median citations that papers with larger author teams receive during the same time span. The same is true for the journal rank score but to a lower extent. To beat the median SJR value of larger teams (`r mm_sjr$median`), smaller team papers should be at the top `r 100 - round(com_perc_sjr$percentile[1], 2)`th percentile. [In other words, although smaller-team papers can achieve greater citation impact than the median larger-team paper, only a relatively small proportion do so. From an individual researcher’s perspective, large-team papers are therefore associated with levels of recognition that only the higher-performing smaller-team papers achieve.]{style="color: red"}
 
 ```{r}
 #| label: fig-percentile
 #| fig-cap: "70, 80, 90, and 99 percentiles of small author groups for second-year citation and SJR"
 #| fig-align: center
-#| layout-nrow: 2
-#| fig-subcap: 
-#|      - "2-year Citation"
-#|      - "SJR"
 #| fig-width: 8
-#| fig-height: 4
-#| cache: true
+#| fig-height: 8
+
 
 mm_b<- dat|> filter(n_author>=20)|> summarise(mean = round(mean(citation_2y), 2), median = median(citation_2y))
 
 mm_sjr<- dat_sjr|> filter(n_author>=20)|> summarise(mean = round(mean(SJR), 2), median = median(SJR))
 
 
-dat|>filter(n_author<20)|>group_by(author_group_ten)|> summarise(value= quantile(citation_2y, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+p1<-dat|>filter(n_author<20)|>group_by(author_group_ten)|> summarise(value= quantile(citation_2y, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
   ggplot(aes(x=author_group_ten, y = value, color = percentile))+
   geom_point(size= 3)+
   ylim(c(0, 150))+
-  theme_classic()+
-  theme(axis.text.x = element_text(vjust = 0.5, hjust = 1, size= 13))+
-  labs(x= "Author group", y= "Second-year citation")+
+  theme_classic(base_size = 11)+
+  labs(x= " ", y= "Second-year citation")+
   scale_color_manual(values = c("#2f4b7c", "#d45087", "#f95d6a", "#F0A430"))+
   geom_hline(aes(yintercept = mm_b$median, linetype = "Median"), color = "darkred", size = 1.5 )+
   geom_hline(aes(yintercept = mm_b$mean, linetype = "Mean"), color = "darkred", size = 1.5)+
-  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))
+  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))+
+  ggtitle("A")
 
 
 
-dat_sjr|>filter(n_author<20)|>group_by(author_group_ten)|> summarise(value= quantile(SJR, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
+p2<-dat_sjr|>filter(n_author<20)|>group_by(author_group_ten)|> summarise(value= quantile(SJR, c(.7, .8, .90, .99)))|> mutate(percentile = as.factor(c(.7, .8,.9,.99)))|>
   ggplot(aes(x=author_group_ten, y = value, color = percentile))+
   geom_point(size= 3)+
   ylim(c(0, 15))+
-  theme_classic()+
-  theme(axis.text.x = element_text( vjust = 0.5, hjust = 1, size= 13))+
+  theme_classic(base_size = 11)+
   labs(x= "Author group", y= "SJR")+
   scale_color_manual(values = c("#2f4b7c", "#d45087", "#f95d6a", "#F0A430"))+
   geom_hline(aes(yintercept = mm_sjr$median, linetype = "Median"), color = "darkred", size = 1.5 )+
   geom_hline(aes(yintercept = mm_sjr$mean, linetype = "Mean"), color = "darkred", size = 1.5)+
-  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))
+  scale_linetype_manual(name = "Large team values", values = c("dotted","solid"))+
+  ggtitle("B")
 
+(p1 / p2 ) +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "right")
 
 ```
 
@@ -489,7 +535,7 @@ unstand_ES2<- round(descriptive2$mean[2]-descriptive2$mean[1], digits = 2)
 
 ```
 
-To further explore whether authors should expect higher impact papers (in terms of citations and SJR) when they publish in small author teams or large author teams, we compared publications by authors in our dataset that were part of large and small teams ($\ge 20$). We performed a dichotomous comparison of small- vs large-team outputs of the same author. In order to minimize the chance of repetition in small-teams records across all eligible authors, we used ≤5 as the definition for small teams. In total, we had `r nrow(bigauthor_performance_5)` eligible authors for citation metrics and `r nrow(bigauthor_performance_sjr5)` authors for journal ranking. @fig-single-author-perfo highlights that across different measures of impact, publications as part of a large team are consistently more successful for individual authors than their small-team publications. We also performed one-sided test for each to assess it statistically. Directional Wilcoxon rank-sum test was significant for each comparison at the level of `r p_val` (i.e., median of total citation (W = `r ci_t[["statistic"]][["W"]]`, CI = \[`r round(ci_t[["conf.int"]][[1]], 3)`, $\infty$\)), second-year citation (W = `r ci_2[["statistic"]][["W"]]`, CI = \[`r round(ci_2[["conf.int"]][[1]], 3)`, $\infty$)), date-corrected citation (W = `r ci_c[["statistic"]][["W"]]`, CI = \[`r round(ci_c[["conf.int"]][[1]], 3)`, $\infty$)), and SJR (W = `r ci_s[["statistic"]][["W"]]`, CI = \[`r round(ci_s[["conf.int"]][[1]], 3)`, $\infty$)) for small and large team contributions of all authors in this category). The median citation of publication of researchers as part of large teams was on average `r unstand_ES` higher after 2 years compared to their publications as part of small teams. For total citations and publication-date–corrected citations the differences are `r unstand_ES_citation` and `r unstand_ES_corr`, respectively. Similarly, the median SJR of large-team publication of researchers is on average `r unstand_ES2` higher than their smaller group publications. We repeated the comparison with different definitions of large-teams ( $\ge 15$ and $\ge 25$) which also yielded similar results (see Supplementary Materials).
+To further explore whether authors should expect higher impact papers (in terms of citations and SJR) when they publish in small author teams or large author teams, we compared publications by authors in our dataset that were part of large and small teams ($\ge 20$). We performed a dichotomous comparison of small- vs large-team outputs of the same author. In order to minimize the chance of repetition in small-teams records across all eligible authors, we used ≤5 as the definition for small teams. In total, we had `r nrow(bigauthor_performance_5)` eligible authors for citation metrics and `r nrow(bigauthor_performance_sjr5)` authors for journal ranking. @fig-single-author-perfo highlights that across different measures of impact, publications as part of a large team are consistently more successful for individual authors than their small-team publications. We also performed one-sided test for each to assess it statistically. Directional Wilcoxon rank-sum test was significant for each comparison at the level of `r p_val` (i.e., median of total citation (W = `r ci_t[["statistic"]][["W"]]`, CI = \[`r round(ci_t[["conf.int"]][[1]], 3)`, $\infty$)), second-year citation (W = `r ci_2[["statistic"]][["W"]]`, CI = \[`r round(ci_2[["conf.int"]][[1]], 3)`, $\infty$)), date-corrected citation (W = `r ci_c[["statistic"]][["W"]]`, CI = \[`r round(ci_c[["conf.int"]][[1]], 3)`, $\infty$)), and SJR (W = `r ci_s[["statistic"]][["W"]]`, CI = \[`r round(ci_s[["conf.int"]][[1]], 3)`, $\infty$)) for small and large team contributions of all authors in this category). The median citation of publication of researchers as part of large teams was on average `r unstand_ES` higher after 2 years compared to their publications as part of small teams. For total citations and publication-date–corrected citations the differences are `r unstand_ES_citation` and `r unstand_ES_corr`, respectively. Similarly, the median SJR of large-team publication of researchers is on average `r unstand_ES2` higher than their smaller group publications. We repeated the comparison with different definitions of large-teams ( $\ge 15$ and $\ge 25$) which also yielded similar results (see Supplementary Materials).
 
 ```{r}
 #| label: fig-single-author-perfo
@@ -497,7 +543,7 @@ To further explore whether authors should expect higher impact papers (in terms 
 #| fig-align: center
 #| fig-width: 8
 #| fig-height: 4
-#| cache: true
+
 
 
 df_long_mix<- rbind(df_long, df_long2)
@@ -514,9 +560,235 @@ ggplot(df_long_mix, aes(x = team, y = value, fill = team)) +
   geom_boxplot(outliers = FALSE) +
   facet_wrap(~ metric, labeller = as_labeller(metric_labs), scales = "free_y") +
   labs(x = NULL, y = NULL) +
-  theme_classic() +
+  theme_classic(base_size = 11) +
   theme(axis.text.x=element_blank())+
   scale_fill_manual(values = c("#007E2F", "#BA6E1D"))
+
+
+```
+
+### Citation counts are similar across reasons for large-team collaboration
+
+[In an exploratory analysis, we evaluated whether there is a difference in citation counts among the categories identified in the qualitative section. Due to the extreme overlap of papers with interdependencies (see @fig-qualitative), it was not possible to perform pair-wise comparisons. However, considering all existing combinations separately, @fig-des-qual shows that no clear pattern is visible in median total citations of different categories. The variability is higher for second-year citation, yet similarly, no clear patterns emerges.]{style="color: red"}
+
+```{r}
+#| label: fig-des-qual
+#| fig-cap: "Total citation and second-year citation counts across qualitative categories without overlap"
+#| fig-align: center
+#| fig-width: 8
+#| fig-height: 8
+
+
+
+summary_stat<- qualitative_coding|> group_by(category)|> summarise(n= n(), median_citation = median(citation), mean_citation = mean(citation),
+                                    median_2y = median(citation_2y), mean_2y = mean(citation_2y)
+                                   )
+
+
+
+
+p1<- qualitative_coding |>
+  ggplot(aes(x = category, y = citation)) +
+  geom_boxplot(outlier.shape = NA, fill = "#A4BED5FF")+
+  stat_summary(fun = mean, geom = "point", color = "#800000FF", size = 2)+
+  scale_x_discrete(
+    labels = \(x) stringr::str_wrap(x, width = 28)
+  ) +
+  xlab("Qualitative Categories")+
+  ylab("Total citation count")+
+  ylim(c(0, 300))+
+  coord_flip()+
+  theme_classic(base_size = 11)+
+  ggtitle("A")
+
+  
+
+
+
+p2<- qualitative_coding |>
+  ggplot(aes(x = category, y = citation_2y)) +
+  geom_boxplot(outlier.shape = NA, fill = "#A4BED5FF")+
+  stat_summary(fun = mean, geom = "point", color = "#800000FF", size = 2)+
+  xlab(" ")+
+  ylab("Second-year citation count")+
+  ylim(c(0, 110))+
+  geom_text(aes(x = 18.45, y = 100, label = "n"), size = 3.3)+
+  geom_text(data = summary_stat, aes(x= category, y = 100, label = n), size = 3.2)+
+  theme_classic(base_size = 11)+
+  theme(axis.text.y = element_blank())+
+  coord_flip()+
+  ggtitle("B")
+  
+  
+plot_grid(p1, p2,  rel_widths = c(1.2, 1))
+
+
+```
+
+```{r}
+#| label: tbl-percentile-qual
+#| echo: false
+#| message: false
+#| warning: false
+#| tbl-cap: Percentiles of author teams with less than 20 to mean and median total citation and second-year citations of larger groups without symbolic papers
+
+
+mm_non_symbolic<- qualitative_coding|> filter(Symbolic == 0)|> summarise(mean_2y = round(mean(citation_2y), 2), median_2y = median(citation_2y), mean_t = round(mean(citation), 2), median_t = median(citation))
+
+small <- dat |>
+  filter(n_author < 20)
+
+comparison_table <- tibble(
+  Metric = c(
+    "Mean 2-year citations",
+    "Median 2-year citations",
+    "Mean total citations",
+    "Median total citations"
+  ),
+  
+  Value = c(
+    mm_non_symbolic$mean_2y,
+    mm_non_symbolic$median_2y,
+    mm_non_symbolic$mean_t,
+    mm_non_symbolic$median_t
+  ),
+  
+  Percentile_small_teams = c(
+    100 * mean(small$citation_2y <= mm_non_symbolic$mean_2y,
+               na.rm = TRUE),
+    
+    100 * mean(small$citation_2y <= mm_non_symbolic$median_2y,
+               na.rm = TRUE),
+    
+    100 * mean(small$citation <= mm_non_symbolic$mean_t,
+               na.rm = TRUE),
+    
+    100 * mean(small$citation <= mm_non_symbolic$median_t,
+               na.rm = TRUE)
+  )
+) |>
+  mutate(
+    Percentile_small_teams = round(Percentile_small_teams, 2),
+    Top_percent = round(100 - Percentile_small_teams, 2)
+  )
+
+comparison_table<- comparison_table|>rename("Percentile small teams" = Percentile_small_teams)|>rename("Top percent" = Top_percent)
+
+tt(
+  comparison_table,
+  width = c(.42, .16, .25, .17)
+) |>
+  style_tt(
+    i = 0,
+    bold = TRUE,
+    align = "c"
+  ) |>
+  style_tt(
+    j = 1,
+    align = "l"
+  ) |>
+  style_tt(
+    j = 2:4,
+    align = "c"
+  )
+
+```
+
+[Considering the presence of individual categories separately (see @fig-box-qual), however, showed that papers in the Symbolic category had higher median total citation counts, whereas this pattern was not apparent for second-year citations. This raises the question of whether the citation advantage associated with large-team papers could be primarily attributable to papers in the Symbolic category. To examine this possibility, we excluded Symbolic papers and calculated the percentile that papers with fewer than 20 authors would need to reach to match the mean and median total and second-year citation counts of the remaining large-team papers in our qualitative sample. As shown in @tbl-percentile-qual, even after excluding Symbolic papers, smaller-team papers needed to rank relatively high within their citation distribution to reach citation levels typical of the remaining large-team papers.]{style="color: red"}
+
+
+```{r}
+#| label: fig-box-qual
+#| fig-cap: "Total citation and second-year citation counts across qualitative categories with overlap"
+#| fig-align: center
+#| fig-width: 8
+#| fig-height: 8
+#| layout-nrow: 2
+
+
+
+
+categories <- c(
+  "Epistemic",
+  "Financial",
+  "Logistic",
+  "Temporal",
+  "No clear reason",
+  "Part of bigger consortium",
+  "Symbolic"
+)
+
+plot_dat <- qualitative_coding |>
+  pivot_longer(
+    cols = all_of(categories),
+    names_to = "Category",
+    values_to = "Present"
+  ) |>
+  filter(Present == 1)
+
+p1 <- ggplot(plot_dat, aes(x = 1, y = citation)) +
+  geom_boxplot(
+    outlier.shape = NA,
+    width = .55,
+    fill = "#A4BED5FF"
+  ) +
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    color = "#800000FF",
+    size = 2
+  ) +
+  facet_wrap(~ Category, nrow = 1) +
+  coord_cartesian(ylim = c(0, 250)) +
+  labs(
+    x = NULL,
+    y = "Total citation count"
+  ) +
+  theme_classic(base_size = 11) +
+  theme(
+    strip.text = element_blank(),
+  strip.background = element_blank(),
+  axis.line.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  axis.text.x = element_blank(),
+    panel.spacing = unit(1, "lines")
+  )+
+  ggtitle("A")
+
+
+p2 <- ggplot(plot_dat, aes(x = 1, y = citation_2y)) +
+  geom_boxplot(
+    outlier.shape = NA,
+    width = .55,
+    fill = "#A4BED5FF"
+  ) +
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    color = "#800000FF",
+    size = 2
+  ) +
+  facet_wrap(~ Category, nrow = 1, strip.position = "bottom",  labeller = label_wrap_gen(width = 15)) +
+  coord_cartesian(ylim = c(0, 100)) +
+  labs(
+    x = NULL,
+    y = "Second-year citation count"
+  ) +
+  theme_classic(base_size = 11) +
+  theme(
+    strip.placement = "outside",
+    axix.line.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    strip.background = element_blank(),
+    panel.spacing = unit(1, "lines")
+  )+
+  ggtitle("B")
+
+
+plot_grid(p1, p2, nrow = 2)
+
+
 
 ```
 
@@ -524,15 +796,27 @@ ggplot(df_long_mix, aes(x = team, y = value, fill = team)) +
 
 Coordination is essential to address complex research questions in science. In response, many disciplines have increasingly organized themselves into larger research teams. Within psychology in particular, the growing culture of team science raises important questions about how such work is evaluated within existing reward structures, and whether these incentives support or discourage further growth in team-based research. This paper examined multiple aspects of the performance and impact of large-team papers in comparison to papers by small teams. We also provided a qualitative investigation of the underlying motivations for why researchers work in large teams in scientific papers.
 
-In line with previous work, we found that large-team papers have been increasing in number, and receive higher citation counts, and are published in higher ranked journals [@wuchty_increasing_2007; @wu_large_2019; @coles_prevalence_2024; @coles_rise_2025]. Although such papers still represent a minority of all publications, their growth may partly reflect shifting expectations for modern academics. In contemporary academia, the nature of research questions that attract scientific attention increasingly requires collaboration, and scientists are expected to develop strong self-awareness, communication, and project-management skills [@bennett_collaboration_2012]. This growing need may naturally encourage researchers to participate in larger team projects as a way to learn and apply these skills.
+In line with previous work, we found that large-team papers have been increasing in number, and receive higher citation counts, and are published in higher ranked journals [@wuchty_increasing_2007; @wu_large_2019; @coles_prevalence_2024; @coles_rise_2025]. [Although such papers still represent a minority of all publications, their growth may partly reflect the shift in topics that attract researchers and journal editors in psychology. These projects can also offer researchers opportunities to work collaboratively, an aspect of academic research that many researchers value, and to expand their professional networks. It may also be due to an increased expectation from scientists to excel at skills like self-awareness, communication, and project-management [@bennett_collaboration_2012], which could, in principle, encourage researchers to participate in larger team projects as a way to learn and apply these skills.]{style="color: red"}
 
-The discussion around how large-team collaborations should be recognized and rewarded is, however, more complex. On the one hand, recognition and reward structures in science still remain highly individualistic [@goring_improving_2014; @tiokhin_shifting_2023]. As a result, early-career researchers might hesitate to join large-team projects due to perceived risks for career progression [@bennett_collaboration_2012], and some have even been advised by senior colleagues to avoid such projects and instead to “build their own brand” [@coles_build_2022]. But, even with growing attention to individual contributions, the total number of citations and the number of publications in high-impact journals continue to be important criteria in hiring and promotion decisions [@carpenter_using_2014]. Given that our results show a higher probability of being published in a higher-ranked journal, as well as receiving more citations, joining a large-team collaboration may contribute to highly cited papers, and papers in more prestigious journals. It is uncertain how hiring committees, or committee members of research proposals, will weigh small team papers versus large team papers. Future research should investigate how researchers evaluate the CV of early career researchers, depending on the balance between small team and large team publications, as a function of the citation counts and journal rank. Once researchers move beyond the early-career stage and have already established a personal research profile, publications produced by large teams can further enhance their visibility and recognition. We encountered several anecdotal cases where being an author on a large-team paper published in a high-ranked journal increased a researcher’s visibility at their institution, and was used to promote their presence at academic events.
+[Within the current academic reward structure, individual-level indicators such as citation counts, publications in highly ranked journals, and the rapid recognition of a researcher’s work can influence career advancement [see @goring_improving_2014; @tiokhin_shifting_2023]. One reason for relying on such indicators may be that scientific quality is a complex and difficult concept to assess directly, highlighting the need for continued discussion about what constitutes quality and how it should be evaluated. Focusing on citation impact, our findings suggest that large-team papers tend to perform better than smaller-team papers. This raises a question about whether these indicators adequately capture contributions that are valuable to science and whether researchers should be incentivized to pursue them. This is a difficult discussion, as citations are correlated with scientific impact, but only as a proxy, and scientific research should not only have scientific, but also societal impact [for a discussion, see @isager2025]. The extent to which citations should be valued is a complex discussion, but in general scientists, funders, and scientific organizations currently assign some value to citations when evaluating the scientific contribution of scientists. As long as hiring, promotion, funding, and professional recognition continue to depend partly on citation metrics, researchers have incentives to perform well on them.]{style="color: red"}
 
-A limitation of our analysis is that our results focused on citation counts and journal rank, which do not inform us about the quality of the knowledge produced. A considerable body of work has cautioned that citation counts and journal visibility do not reliably reflect research quality [@aksnes_citations_2019; @dougherty_citation_2022; @seglen_why_1997]. Many mechanisms can result in higher citation counts and journal rank that do not directly relate to scientific quality. The higher relevance of the topics that are the focus of bigger collaborations might result in greater visibility, and therefore higher citation counts [@wu_large_2019]. Citation counts and journal rank can also be inflated by social and cognitive biases. Large collaborations frequently include more prestigious scientists and institutions, they are often led by researchers from higher-resource countries, and empirical studies typically collect larger sample sizes [@coles_rise_2025]. These features can trigger authority bias, and increase citations independently of research quality [@urlings_citation_2021]. In addition, citation counts may be inflated through unfounded self-citations [@aksnes_macro_2003] or through network effects, if large-teams have larger social and professional networks that amplify the citation trajectory of papers [@li_untangling_2022].
+[The value of citation impact and journal prestige may also differ across career stages. Early-career researchers face particular pressure to establish themselves as independent scholars and develop a recognizable research profile]{style="color: red"} [@bennett_collaboration_2012; @coles_build_2022; @zucker2012]. [They may therefore hesitate to participate in large-team projects if having their contribution embedded within a long author list makes their individual contribution less visible, particularly when scientific credit is disproportionately attributed to principal investigators or other prominent contributors]{style="color: red"} [@zucker2012]. [This creates a potential tension between the benefits associated with large-team outputs and the visibility of an individual researcher’s contribution to those outputs. At the same time, early-career researchers may benefit from participating in large-team collaborations beyond having highly visible and highly cited publications. For example, participation in such projects may provide new opportunities, expand professional networks, offer access to support and mentorship, and expose researchers to new scientific perspectives, skills, and expertise]{style="color: red"} [@zucker2012].
 
-Similar to Coles [-@coles_rise_2025], we found that scaling up the project (e.g., collecting more data, collecting data from multiple sites) is one of the primary reasons that researchers opt for large-team collaborations. Logistic and financial interdependencies are highly tangible and relatively straightforward to plan for. However, our results also suggest that many researchers engage in large-team work for reasons that are unrelated to the interdependencies that arise when attempting to answer complex research questions. It is possible that researchers add co-authors to benefit from the higher visibility and citation advantages associated with collaborative outputs. In addition, gift authorship has been shown to be prevalent in science [@gulen_more_2020]. Large collaborations may also be motivated by a desire to draw attention to a particular issue or to signal the importance of a problem, effectively “proving a point” through the collective weight of a large author team. The high visibility of large-team publications may therefore be used, whether opportunistically or altruistically, to amplify specific messages or research agendas. The use of CREDIT statements might make the contributions of authors more transparent, and fields might develop policies about the acceptability of submitting papers with a large number of authors to signal support for a position.
+[It is uncertain how hiring committees, or committee members of research proposals should evaluate the contributions that researchers made on small-team papers compared to large-team papers to appropriately recognize their scientific contributions. Future research could examine how evaluators assess the CVs of early-career researchers with different combinations of small- and large-team publications, and whether these evaluations depend on citation impact, journal prestige, authorship position, or documented contributions. Such work could help establish whether the potential benefits of large-team participation identified here translate into career advantages for individual researchers or whether concerns about diluted credit offset these benefits. Narrative CVs, which allow scientists to describe the impact of their work, may provide evaluators with additional context and facilitate the recognition of a wider range of scientific contributions, such as contributions to team science.]{style="color: red"}
 
-As long as recognition and reward procedures remain focused on individuals, improving coordination in science requires that the benefits of collaborative work be tangible for individual researchers. Our findings suggest that large-team collaborations are less risky than individual work in terms of impact and visibility, often generate more immediate influence, and are on average cited more and published in higher-ranked journals than small team papers by the same author. Moreover, this study highlights that large-team collaborations primarily arise from the interdependencies and demands of complex research questions, but also from broader social and strategic factors. While coordinated research should ideally be driven by intrinsic scientific goals, making these additional motivators explicit may help increase the adoption of coordinated large-team research in scientific disciplines such as psychology. We need coordination to answer complex questions, and our results show that coordination is potentially rewarding in the current state of academia. 
+[The value of contributing to large-team projects may change once researchers have established an independent research profile. At later career stages, large-team publications may provide additional opportunities for visibility and recognition, as more senior scientists might benefit more from demonstrating leadership ability than demonstrating independence. Anecdotally, we have seen how authorship on a large-team paper that was published in a highly ranked journal increased a researcher’s visibility within their institution. Although these observations are anecdotal and should not be interpreted as evidence of a systematic career benefit, they illustrate one potential mechanism through which the citation and publication advantages associated with large-team research could translate into individual recognition. More generally, these competing considerations suggest that the incentives and potential returns associated with participating in large-team science may vary substantially across career stages.]{style="color: red"}
+
+A limitation of our analysis is that our results focus on citation counts and journal rank, neither of which informs us directly about the quality of the scientific knowledge that is produced. [Moreover, it does not inform us about any possible causal mechanisms explaining the relationship between citation counts and team size. Although we do not make claims about the quality of the studies or the mechanisms behind this relationship,]{style="color: red"} a considerable body of work has cautioned that citation counts and journal visibility do not reliably reflect research quality [@aksnes_citations_2019; @dougherty_citation_2022; @seglen_why_1997]. Several mechanisms can generate higher citation counts or publication in higher-ranked journals without necessarily reflecting differences in scientific quality. For example, the broader relevance of topics addressed by larger collaborations may increase their visibility and, consequently, their citation counts [@wu_large_2019]. Citation patterns may also be affected by social and cognitive biases. Large collaborations frequently include more prestigious researchers and institutions, are often led by researchers from higher-resource countries, and typically involve larger samples [@coles_rise_2025]. These characteristics may trigger authority-related biases and increase citations independently of research quality [@urlings_citation_2021]. Citation counts may further be affected by self-citation [@aksnes_macro_2003], although the association between team size and citations has also been observed after accounting for self-citations [e.g., @larivière2015]. Network effects may also impact the citation count, as larger teams may have broader social and professional networks through which their work becomes visible and subsequently cited [@li_untangling_2022]. [And indeed, our data extend these findings by showing how perspective and opinion pieces by large groups of authors gather a substantial amount of citations.]{style="color: red"}
+
+[Citation-based indicators are only one proxy for scientific impact. Alternative indicators include references to research in patents, policy, legal, or other non-academic documents, as well as measures of online attention, such as the number of times an article is saved, shared, or discussed on social media]{style="color: red"} [@brown2014; @velayos-ortega2023a; @beerdsen2025]. [However, these measures capture different dimensions of research influence and each measure comes with their own limitations. Patent citations, for example, may be more informative in fields with direct technological applications and less generalizable to the social sciences, while policy, legal, and clinical uptake represent qualitatively different forms of societal influence that are difficult to combine into a single measure. Measures of online attention similarly capture visibility or engagement rather than necessarily reflecting research quality. Throughout this paper, we interpret citation counts specifically as an indicator of citation impact and SJR as an indicator of journal-level citation prestige. Our findings should be interpreted as evidence that large-team papers tend to receive greater scholarly citation attention, and appear in journals with greater citation prestige, rather than evidence that large-team collaborations necessarily produce higher-quality science.]{style="color: red"}
+
+[Through our qualitative analysis, we found that interdependencies were the most common reason for forming large teams. Among these, logistic and financial interdependencies were particularly frequent, which is consistent with the findings of Coles]{style="color: red"} [-@coles_rise_2025]. [This suggests that scaling up research (for example, by collecting larger samples or collecting data across multiple sites) is an important reason for large-team collaboration. This pattern may point to a mismatch between how research is conventionally organized and funded in psychology and the resources required to address increasingly ambitious research questions and methodological standards. Research funding is still often organized around individual PIs and their research groups and focuses more on novelty rather than what is required for further developing knowledge generation]{style="color: red"} [@vaesen2026]. [However, researchers are expected to show standards that require resources that exceed the capacity of a single investigator or laboratory. Large-team collaboration may provide one way of addressing this mismatch by pooling financial resources, infrastructure, access to participants, and scientific labour across researchers and institutions. In doing so, large teams may also make methodologically demanding research designs feasible by distributing the labour and resources required to implement them.]{style="color: red"}
+
+[Our results also showed that the infrastructure created through large-team coordination can remain valuable beyond the project for which it was initially established. This was apparent in papers in our sample that conducted secondary analyses of data generated by larger cohorts, clinical trials, or consortia. Although the analyses in these papers may not have necessarily required the same interdependencies as the original data collection, they are based on data that required substantial coordination to be created. The scientific value of large-team coordination extends beyond its immediate outputs, with datasets and protocols providing resources for subsequent research. This also raises questions about co-authorship, as the data shared by large collaborations is often valuable for other scientific contributions, and was often collected at substantial financial or logistical costs. If subsequent research depends on the investments of a large collaboration, it might be important for fields to reflect on how they provide credit for the work that went into generating these rich datasets.]{style="color: red"}
+
+[We also found that large teams can serve functions beyond addressing the interdependencies associated with complex empirical research. For example, some large-team publications in our sample were position papers, perspectives, commentaries, workshop reports, or research roadmaps. In these cases, the large number of authors may serve a signaling function, indicating broad support for a position, drawing attention to an issue, or representing consensus across a research community. These functions are not necessarily problematic. Establishing consensus and research priorities are important steps in scientific coordination]{style="color: red"} [@rasti2026]. [A smaller subset of the papers we investigated did not reveal an apparent reason for the large number of authors. These categories raise questions about how individual contributions are defined and communicated. A CRediT statement might help to specify contributions of each author, and prevent the impression of honorary or gift authorship, which has been shown to occur in science]{style="color: red"} [@gulen_more_2020]. [However, relatively broad categories in a CRediT statement do not necessarily communicate the magnitude or importance of each contribution, or the extent to which a particular contribution was necessary for the research. Research communities may therefore need to consider whether existing authorship conventions adequately distinguish between authorship reflecting direct contributions to a specific scholarly output and participation intended primarily to signal collective endorsement.]{style="color: red"}
+
+As long as recognition and reward procedures remain focused on individuals, improving coordination in science requires that the benefits of collaborative work be tangible for individual researchers. Our findings suggest that large-team collaborations are more likely to receive citation impact and visibility, often generate more immediate influence, and are on average cited more and published in higher-ranked journals than small team papers by the same author. Moreover, this study highlights that large-team collaborations primarily arise from the interdependencies and demands of complex research questions, but also from broader social and strategic factors. While coordinated research should ideally be driven by intrinsic scientific goals, making these additional motivators explicit may help increase the adoption of coordinated large-team research in scientific disciplines such as psychology. We need coordination to answer complex questions, and our results show that coordination is potentially rewarding in the current state of academia.
 
 ### Acknowledgement
 
@@ -548,7 +832,7 @@ The authors declare that the generative AI was only used to increase the efficie
 
 ### Data, code, and materials
 
-Codes and materials to recreate this manuscript is available at [https://github.com/Sajedehra/Large_team_openalex_coordination](https://github.com/Sajedehra/Large_team_openalex_coordination). Data used in this study is available at [https://data.4tu.nl/private_datasets/NNOaIjnIG5G1i-kvzILsxBXJD-NV4dqs3UlQw6CfjUc](https://data.4tu.nl/private_datasets/NNOaIjnIG5G1i-kvzILsxBXJD-NV4dqs3UlQw6CfjUc).
+Codes and materials to recreate this manuscript is available at <https://github.com/Sajedehra/Large_team_openalex_coordination>. Data used in this study is available at <https://data.4tu.nl/private_datasets/NNOaIjnIG5G1i-kvzILsxBXJD-NV4dqs3UlQw6CfjUc>.
 
 ### Competing Interest Declaration
 
