@@ -65,8 +65,8 @@ library(patchwork)
 dat<- readRDS(here("data","consolidate_data_openalex.rds"))
 dat_sjr<- readRDS(here("data","consolidate_journal_data.rds"))
 
-intercoder_initial<- readRDS(here("qualitative analysis", "intercoder_initial.rds"))
-intercoder_final<- readRDS(here("qualitative analysis", "intercoder_final.rds"))
+intercoder_initial<- readRDS(here("data", "intercoder_initial.rds"))
+intercoder_final<- readRDS(here("data", "intercoder_final.rds"))
 
 ci_full<- readRDS(here("data","all_CI_openalex.rds"))
 

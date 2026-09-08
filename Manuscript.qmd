@@ -104,14 +104,14 @@ ci_full<- readRDS(here("data","all_CI_openalex.rds"))
 bigauthor_performance_5<- readRDS(here("data","author_smallvsbig_performance_citation_metrics_20.rds"))
 bigauthor_performance_sjr5<- readRDS(here("data","author_smallvsbig_performance_journal_ranking_20.rds"))
 
-qualitative_coding<- readRDS(here("qualitative analysis", "complete_coding.rds"))
+qualitative_coding<- readRDS(here("data", "complete_coding.rds"))
 combinations_qualitative<- readRDS(here("data" , "euler_dat.rds"))
 
 self_citation_more20<-readRDS(here("data", "self_citation_more20.rds"))
 self_citation_less20<- readRDS(here("data", "self_citation_less20.rds"))
 
-intercoder_initial<- readRDS(here("qualitative analysis", "intercoder_initial.rds"))
-intercoder_final<- readRDS(here("qualitative analysis", "intercoder_final.rds"))
+intercoder_initial<- readRDS(here("data", "intercoder_initial.rds"))
+intercoder_final<- readRDS(here("data", "intercoder_final.rds"))
 
 options(scipen = 100, digits = 4) #disable scientific notation for large numbers (2856 insteaad of 2.856^3)
 
