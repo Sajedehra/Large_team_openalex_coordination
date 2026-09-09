@@ -67,6 +67,6 @@ for (code in codes) {
 }
 
 
-saveRDS(qual_result_2, here("qualitative analysis", "intercoder_initial.rds"))
-saveRDS(qual_result_3, here("qualitative analysis", "intercoder_final.rds"))
+saveRDS(qual_result_2, here("data", "intercoder_initial.rds"))
+saveRDS(qual_result_3, here("data", "intercoder_final.rds"))
 
