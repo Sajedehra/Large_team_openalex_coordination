@@ -88,8 +88,7 @@ forward_self_citations <- function(dat) {
         n_authors = dat$n_author[i],
         our_citation = dat$citation[i],
         n_citations_new = 0L,
-        n_self_citations = 0L,
-        pct_self_forward = NA_real_
+        n_self_citations_new = 0L
       )
       
       next
@@ -235,7 +234,6 @@ saveRDS(self_citation_more20, here("data", "self_citation_more20.rds"))
 
 
 # comparisons -------------------------------------------------------------
-
 
 
 wilcox.test(self_citation_more20$n_citations_new, self_citation_less20$n_citations_new, alternative = "greater", conf.int = TRUE)
