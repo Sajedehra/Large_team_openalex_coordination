@@ -9,6 +9,9 @@ library(here)
 options(openalexR.mailto = "s.rasti@tue.nl")
 
 
+dat<- readRDS(here("data", "consolidate_data_openalex_before_revision.rds"))
+
+
 # Extract OpenAlex author IDs from one row of an oa_fetch() result
 get_author_ids <- function(work_row) {
   a <- work_row$authorships[[1]]
@@ -196,7 +199,7 @@ batch_5<-dat2[401:500,]
 results5<- forward_self_citations(batch_5)
 
 
-self_citation_less20<- rbind(results1, results2, results3, results3, results5)
+self_citation_less20<- rbind(results1, results2, results3, results4, results5)
 self_citation_less20<-self_citation_less20|>mutate(across(n_self_citations_new, ~ replace_na(.x, 0)))|>
   mutate(non_self_citation = n_citations_new - n_self_citations_new)
 
@@ -225,7 +228,7 @@ batch_5<-dat1[401:500,]
 results5<- forward_self_citations(batch_5)
 
 
-self_citation_more20<- rbind(results1, results2, results3, results3, results5)
+self_citation_more20<- rbind(results1, results2, results3, results4, results5)
 
 self_citation_more20<-self_citation_more20|>mutate(across(n_self_citations_new, ~ replace_na(.x, 0)))|>
   mutate(non_self_citation = n_citations_new - n_self_citations_new)
